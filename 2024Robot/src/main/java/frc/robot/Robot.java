@@ -4,9 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Servo;
 //import edu.wpi.first.util.sendable.SendableRegistry;
 //import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -15,8 +17,11 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -28,29 +33,25 @@ public class Robot extends TimedRobot {
   
 
   private MecanumDrive robotDrive;
+
   private XboxController controller1;
 
-  private CANSparkMax frontLeft;
-  private CANSparkMax rearLeft;
-  private CANSparkMax frontRight;
-  private CANSparkMax rearRight;
+  private final Timer timer = new Timer();
 
-  private TalonSRX pivotMotor;
-  private TalonSRX feederMotor;
-  private TalonSRX shooterMotor;
+  private CANSparkMax frontLeft, rearLeft, frontRight, rearRight;
+  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
+  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
+  private TalonSRX pivotMotor, feederMotor, shooterMotor;
 
-  private double xAxis = 0;
-  private double yAxis = 0;
-  private double zAxis = 0;
+  private Servo hoodServo;
+
+  private double xAxis = 0, yAxis = 0, zAxis = 0;
 
   private String autoSelection;
 
-  DoublePublisher xPub;
-  DoublePublisher yPub;
-  DoublePublisher zPub;
-  StringPublisher auto;
+  DoublePublisher xPub, yPub, zPub;
+  StringPublisher autoPub;
 
-  // Statics
   private static final int controllerChannel = 0;
 
   private static final int pivotMotorIdx = 0;
@@ -62,9 +63,18 @@ public class Robot extends TimedRobot {
 
   private static final double deadband = 0.12;
 
+  private static final int PIDSlot = 0;
+  private static final double driveMotorP = 0.00005;
+  private static final double driveMotorI = 0.000001;
+  private static final double driveMotorD = 0;
+  private static final double driveMotorFF = 0.000156;
+  private static final double driveMotorMaxOutput = 1;
+  private static final double driveMotorMaxRPM = 5700;
+  private static final double driveMotorMaxVelocity = 2000; //rpm
+  private static final double driveMotorMaxAcceleration = 1500;
+
   public static SendableChooser<String> autoChooser;
 
-  
   private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3"};
 
 
@@ -73,6 +83,97 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    //Initialize Motors
+    frontLeft = new CANSparkMax(1,MotorType.kBrushless);
+    rearLeft = new CANSparkMax(2,MotorType.kBrushless);
+    rearRight = new CANSparkMax(3,MotorType.kBrushless);
+    frontRight = new CANSparkMax(4,MotorType.kBrushless);
+    
+    pivotMotor = new TalonSRX(5);
+    shooterMotor = new TalonSRX(6);
+    feederMotor = new TalonSRX(7);
+
+
+
+    //Setup Pivot Motor
+    //Set Sensor Feedback Device
+    pivotMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,pivotMotorIdx,pivotMotorTimeout);
+    //Invert Sensor
+    pivotMotor.setSensorPhase(true);
+    //Invert Motor
+    pivotMotor.setInverted(false);
+    //Set Maximum Output
+    pivotMotor.configPeakOutputForward(1);
+    pivotMotor.configPeakOutputReverse(-1);
+    //Set PID 
+    pivotMotor.config_kF(pivotMotorIdx, 0.02325, pivotMotorTimeout);
+		pivotMotor.config_kP(pivotMotorIdx, 2, pivotMotorTimeout);
+		pivotMotor.config_kI(pivotMotorIdx, 0.001, pivotMotorTimeout);
+		pivotMotor.config_kD(pivotMotorIdx, 20, pivotMotorTimeout);
+    //Set acceleration and vcruise velocity
+		pivotMotor.configMotionCruiseVelocity(25000, pivotMotorIdx);
+		pivotMotor.configMotionAcceleration(25000, pivotMotorTimeout);
+    //Set Smoothing
+    pivotMotor.configMotionSCurveStrength(2);
+    // Zero the sensor once on robot boot up
+		pivotMotor.setSelectedSensorPosition(0, pivotMotorIdx, pivotMotorTimeout);
+
+    // Setup drive motors
+    frontRight.setInverted(false);
+    frontRightPID = frontRight.getPIDController();
+    frontRightEncoder = frontRight.getEncoder();
+    frontRightPID.setP(driveMotorP);
+    frontRightPID.setI(driveMotorI);
+    frontRightPID.setD(driveMotorD);
+    frontRightPID.setFF(driveMotorFF);
+    frontRightPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    frontRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
+    frontRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
+    
+    rearRight.setInverted(false);
+    rearRightPID = rearRight.getPIDController();
+    rearRightEncoder = rearRight.getEncoder();
+    rearRightPID.setP(driveMotorP);
+    rearRightPID.setI(driveMotorI);
+    rearRightPID.setD(driveMotorD);
+    rearRightPID.setFF(driveMotorFF);
+    rearRightPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    rearRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
+    rearRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
+
+    frontLeft.setInverted(true);
+    frontLeftPID = frontLeft.getPIDController();
+    frontLeftEncoder = frontLeft.getEncoder();
+    frontLeftPID.setP(driveMotorP);
+    frontLeftPID.setI(driveMotorI);
+    frontLeftPID.setD(driveMotorD);
+    frontLeftPID.setFF(driveMotorFF);
+    frontLeftPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    frontLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
+    frontLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
+
+    rearLeft.setInverted(true);
+    rearLeftPID = rearLeft.getPIDController();
+    rearLeftEncoder = rearLeft.getEncoder();
+    rearLeftPID.setP(driveMotorP);
+    rearLeftPID.setI(driveMotorI);
+    rearLeftPID.setD(driveMotorD);
+    rearLeftPID.setFF(driveMotorFF);
+    rearLeftPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    rearLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
+    rearLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
+
+    //Setup feeder and shoorter motors
+    feederMotor.setInverted(false);
+    shooterMotor.setInverted(true);
+
+    //Setup hood servo motor
+    hoodServo = new Servo(0);
+
+    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
+
+    controller1 = new XboxController(controllerChannel);
+
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", autoList);  
 
@@ -91,61 +192,12 @@ public class Robot extends TimedRobot {
     xPub = table.getDoubleTopic("Joystick X Axis").publish();
     yPub = table.getDoubleTopic("Joystick Y Axis").publish();
     zPub = table.getDoubleTopic("Joystick Z Axis").publish();
-    auto = table.getStringTopic("Auto Selection").publish();
+    autoPub = table.getStringTopic("Auto Selection").publish();
 
-
-
-    frontLeft = new CANSparkMax(1,MotorType.kBrushless);
-    rearLeft = new CANSparkMax(2,MotorType.kBrushless);
-    rearRight = new CANSparkMax(3,MotorType.kBrushless);
-    frontRight = new CANSparkMax(4,MotorType.kBrushless);
-    
-    pivotMotor = new TalonSRX(5);
-    shooterMotor = new TalonSRX(6);
-    feederMotor = new TalonSRX(7);
-
-    //Set Factory Default
-    pivotMotor.configFactoryDefault();
-    //Set Sensor Feedback Device
-    pivotMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,pivotMotorIdx,pivotMotorTimeout);
-    //Invert Sensor
-    pivotMotor.setSensorPhase(true);
-    //Invert Motor
-    pivotMotor.setInverted(false);
-    //Set Minimum Output
-    pivotMotor.configNominalOutputForward(0);
-    pivotMotor.configNominalOutputReverse(0);
-    //Set Maximum Output
-    pivotMotor.configPeakOutputForward(1);
-    pivotMotor.configPeakOutputReverse(-1);
-    //Set Allowable Error-Within this error motor will be in neutral
-    pivotMotor.configAllowableClosedloopError(0, pivotMotorIdx, pivotMotorTimeout);
-    //Set PID 
-    pivotMotor.config_kF(pivotMotorIdx, 0.02325, pivotMotorTimeout);
-		pivotMotor.config_kP(pivotMotorIdx, 2, pivotMotorTimeout);
-		pivotMotor.config_kI(pivotMotorIdx, 0.001, pivotMotorTimeout);
-		pivotMotor.config_kD(pivotMotorIdx, 20, pivotMotorTimeout);
-    //Set acceleration and vcruise velocity
-		pivotMotor.configMotionCruiseVelocity(25000, pivotMotorIdx);
-		pivotMotor.configMotionAcceleration(25000, pivotMotorTimeout);
-    //Set Smoothing
-    pivotMotor.configMotionSCurveStrength(2);
-    // Zero the sensor once on robot boot up
-		pivotMotor.setSelectedSensorPosition(0, pivotMotorIdx, pivotMotorTimeout);
-
-    // Invert the right side motors.
-    // You may need to change or remove this to match your robot.
-    frontRight.setInverted(false);
-    rearRight.setInverted(false);
-    frontLeft.setInverted(true);
-    rearLeft.setInverted(true);
-
-    feederMotor.setInverted(false);
-    shooterMotor.setInverted(true);
-
-    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
-
-    controller1 = new XboxController(controllerChannel);
+    SendableRegistry.addChild(robotDrive, frontLeft);
+    SendableRegistry.addChild(robotDrive, rearLeft);
+    SendableRegistry.addChild(robotDrive, frontRight);
+    SendableRegistry.addChild(robotDrive, rearRight);
 
   }
 
@@ -168,7 +220,7 @@ public class Robot extends TimedRobot {
     xPub.set(xAxis);
     yPub.set(yAxis);
     zPub.set(zAxis);
-    auto.set(SmartDashboard.getString("Auto Selector", "None"));
+    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));
   }
 
   @Override
@@ -186,28 +238,34 @@ public class Robot extends TimedRobot {
       shooterMotor.set(ControlMode.PercentOutput, -0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
+      hoodServo.set(0);
     }
     else if (controller1.getBButton()==true && controller1.getRightBumper()==true) {
       shooterMotor.set(ControlMode.PercentOutput,1);
       feederMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
+      hoodServo.set(0);
     }
     else if (controller1.getBButton()==true){
       shooterMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
+      hoodServo.set(0);
     }
      else if (controller1.getXButton()==true && controller1.getRightBumper()==true) {
       shooterMotor.set(ControlMode.PercentOutput,0.6);
       feederMotor.set(ControlMode.PercentOutput, 0.7);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
+      hoodServo.set(1);
      }
      else if (controller1.getXButton()==true) {
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
+      hoodServo.set(1);
      }
     else{
       feederMotor.set(ControlMode.PercentOutput,0);
       shooterMotor.set(ControlMode.PercentOutput,0);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
+      hoodServo.set(0);
     }
 
 
@@ -216,17 +274,35 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit(){
       autoSelection = SmartDashboard.getString("Auto Selector", "None");
-      System.out.println(autoSelection);
+      timer.restart();
   }
 
   @Override
   public void autonomousPeriodic(){
-    switch (SmartDashboard.getString("Auto Selector", "None")) {
+    switch (autoSelection) {
       case "Do Nothing":
         turnOffAllMotors();
         break;
       case "Auto 1":
-        shooterMotor.set(ControlMode.PercentOutput, .2);
+          if(timer.get() < 1)
+            shooterMotor.set(ControlMode.PercentOutput, 1);
+          else if(timer.get() < 2)
+            feederMotor.set(ControlMode.PercentOutput, 1);
+          else if(timer.get() < 4){
+            int position = 100;
+            feederMotor.set(ControlMode.PercentOutput,0);
+            shooterMotor.set(ControlMode.PercentOutput,0);
+            frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          }
+        break;
+      case "Auto 2" :
+        turnOffAllMotors();
+        break;
+      case "Auto 3" :
+        turnOffAllMotors();
         break;
       default:
         turnOffAllMotors();
