@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
   public static SendableChooser<String> autoChooser;
 
   
-  private static final String[] autoList = {"Do Nothing", "Auto 1"};
+  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3"};
 
 
 
