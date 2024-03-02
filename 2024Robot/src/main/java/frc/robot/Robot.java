@@ -62,7 +62,7 @@ public class Robot extends TimedRobot {
   private static final int pivotMotorIdx = 0;
   private static final int pivotMotorTimeout = 30;
 
-  private static final int shootingHighPosition = 2500;
+  private static final int shootingHighPosition = 8000;
   private static final int shootingLowPosition = 80000;
   private static final int intakePosition = 165000;
 
