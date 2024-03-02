@@ -62,12 +62,12 @@ public class Robot extends TimedRobot {
   private static final int pivotMotorIdx = 0;
   private static final int pivotMotorTimeout = 30;
 
-  private static final int shootingHighPosition = 2500;
-  private static final int shootingLowPosition = 80000;
+  private static final int shootingHighPosition = 8000;
+  private static final int shootingLowPosition = 75000;
   private static final int intakePosition = 165000;
 
   private static final double servoUp = .4;
-  private static final double servoDown = .55;
+  private static final double servoDown = .5;
   private static final double servoIntake = .7;
 
   private static final double deadband = 0.12;
@@ -279,8 +279,8 @@ public class Robot extends TimedRobot {
       hoodServo.set(servoDown);
     }
      else if (controller1.getXButton()==true && controller1.getRightBumper()==true) {
-      shooterMotor.set(ControlMode.PercentOutput,0.6);
-      feederMotor.set(ControlMode.PercentOutput, 0.7);
+      shooterMotor.set(ControlMode.PercentOutput,0.7);
+      feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
      }
