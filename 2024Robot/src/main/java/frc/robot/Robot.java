@@ -242,6 +242,8 @@ public class Robot extends TimedRobot {
     zAxis = -zAxis;
     xAxis = -xAxis;
 
+    testDouble = frontLeftEncoder.getPosition();
+
     xPub.set(xAxis);
     yPub.set(yAxis);
     zPub.set(zAxis);
@@ -316,7 +318,6 @@ public class Robot extends TimedRobot {
             shooterMotor.set(ControlMode.PercentOutput, 0);
           else if(timer.get() < 2){
             feederMotor.set(ControlMode.PercentOutput, 1);
-            testDouble = frontLeftEncoder.getPosition();
           }
           else if(timer.get() < 4){
             //Neo Encoder Units = Revs
@@ -325,11 +326,10 @@ public class Robot extends TimedRobot {
             int position = 100;
             feederMotor.set(ControlMode.PercentOutput,0);
             shooterMotor.set(ControlMode.PercentOutput,0);
-            frontLeftPID.setReference(position, CANSparkMax.ControlType.kPosition);
-            rearLeftPID.setReference(position, CANSparkMax.ControlType.kPosition);
-            frontRightPID.setReference(position, CANSparkMax.ControlType.kPosition);
-            rearRightPID.setReference(position, CANSparkMax.ControlType.kPosition);
-            testDouble = frontLeftEncoder.getPosition();
+            frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            //rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            //frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+            //rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
           }
         break;
       case "Auto 2" :
