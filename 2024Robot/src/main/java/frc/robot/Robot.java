@@ -36,6 +36,7 @@ public class Robot extends TimedRobot {
   private MecanumDrive robotDrive;
 
   private XboxController controller1;
+//private XboxController controller2;
 
   private final Timer timer = new Timer();
 
@@ -58,6 +59,7 @@ public class Robot extends TimedRobot {
   double testDouble = 0;
 
   private static final int controllerChannel = 0;
+//private static final int controller2Channel = 1;
 
   private static final int pivotMotorIdx = 0;
   private static final int pivotMotorTimeout = 30;
@@ -196,6 +198,7 @@ public class Robot extends TimedRobot {
     robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
 
     controller1 = new XboxController(controllerChannel);
+//controller2 = new XboxController(controller2Channel);
 
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", autoList);  
@@ -262,30 +265,35 @@ public class Robot extends TimedRobot {
 
 
     robotDrive.driveCartesian(yAxis, xAxis, zAxis);
-    
+ 
+//if (controller1.getAButton()==true || controller2.getAButton()==true)   
     if (controller1.getAButton()==true) {
       shooterMotor.set(ControlMode.PercentOutput, -0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
       hoodServo.set(servoIntake);
     }
+//else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true))
     else if (controller1.getBButton()==true && controller1.getRightBumper()==true) {
       shooterMotor.set(ControlMode.PercentOutput,1);
       feederMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
+//else if (controller1.getBButton()==true || controller2.getBButton()==true)
     else if (controller1.getBButton()==true){
       shooterMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
+//else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true))
      else if (controller1.getXButton()==true && controller1.getRightBumper()==true) {
       shooterMotor.set(ControlMode.PercentOutput,0.7);
       feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
      }
+//else if (controller1.getXButton()==true || controller2.getXButton()==true)
      else if (controller1.getXButton()==true) {
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
