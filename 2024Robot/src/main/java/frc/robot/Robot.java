@@ -92,7 +92,7 @@ public class Robot extends TimedRobot {
 
   public static SendableChooser<String> autoChooser;
 
-  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3"};
+  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5"};
 
 
 
@@ -328,11 +328,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic(){
+        double leftPreviousPosition;
+        double rightPreviousPosition;
+        double leftPosition;
+        double rightPosition;
     switch (autoSelection) {
       case "Do Nothing":
         turnOffAllMotors();
         break;
-      case "Auto 1":
+      
+        case "Auto 1":
         if(timer.get() < 1){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           shooterMotor.set(ControlMode.PercentOutput, 1);
@@ -341,22 +346,11 @@ public class Robot extends TimedRobot {
         else if(timer.get() < 1.5){
           feederMotor.set(ControlMode.PercentOutput, 1);
         }
-        else if(timer.get() < 5){
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          double position = -25;
-          feederMotor.set(ControlMode.PercentOutput,0);
-          shooterMotor.set(ControlMode.PercentOutput,0);
-          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-        }
         else
           turnOffAllMotors();
         break;
-      case "Auto 2" :
+      
+        case "Auto 2" :
         if(timer.get() < 1){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
@@ -405,7 +399,9 @@ public class Robot extends TimedRobot {
         else
           turnOffAllMotors();
         break;
-      case "Auto 3" :
+      
+        case "Auto 3" :
+        //Left Side Facing Speaker from midfield
         if(timer.get() < 1){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
@@ -419,18 +415,29 @@ public class Robot extends TimedRobot {
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
         }
-        else if(timer.get() < 6){
+        else if(timer.get() < 4.5){
+          double leftPosition1 = -47;
+          double rightPosition1 = -15;
+          double leftPosition2 = leftPosition1 + -5;
+          double rightPosition2 = rightPosition1 + -5;
           shooterMotor.set(ControlMode.PercentOutput, -0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
           //Neo Encoder Units = Revs
           //GR = 10.71 - Wheel Circumference = 28.27in
           //2.63 Inches per Rev
-          
-          double position = -35;;
-          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 6){
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          frontLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
         }
         else if(timer.get() < 10){
           shooterMotor.set(ControlMode.PercentOutput, 0);
@@ -441,16 +448,124 @@ public class Robot extends TimedRobot {
           //Neo Encoder Units = Revs
           //GR = 10.71 - Wheel Circumference = 28.27in
           //2.63 Inches per Rev
-          double position = 0;
-          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
         }
         else if(timer.get() < 11)
           shooterMotor.set(ControlMode.PercentOutput, 1);
         else if(timer.get() < 12.5)
           feederMotor.set(ControlMode.PercentOutput, 1);
+        else
+          turnOffAllMotors();
+        break;
+      case "Auto 4":
+        //Left Side Facing Speaker from midfield
+
+        if(timer.get() < 1){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 2.5){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
+          hoodServo.set(servoIntake);
+        }
+        else if(timer.get() < 4.5){
+          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 6){
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          frontLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 10){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 11)
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 12.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else
+          turnOffAllMotors();
+        break;
+      case "Auto 5":
+        if(timer.get() < 1){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 12){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+        }
+        else if(timer.get() < 15){
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          double leftPosition = 0;
+          double rightPosition = 0;
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else
+          turnOffAllMotors();
+        break;
+      case "Auto 6":
+        if(timer.get() < 1){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 12){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+        }
+        else if(timer.get() < 15){
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          double leftPosition = 0;
+          double rightPosition = 0;
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+        }
         else
           turnOffAllMotors();
         break;
