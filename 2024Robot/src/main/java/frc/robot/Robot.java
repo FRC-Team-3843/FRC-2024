@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.NetworkTable;
@@ -27,6 +28,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 /** This is a demo program showing how to use Mecanum control with the MecanumDrive class. */
@@ -35,8 +37,7 @@ public class Robot extends TimedRobot {
 
   private MecanumDrive robotDrive;
 
-  private XboxController controller1;
-//private XboxController controller2;
+  private XboxController controller1, controller2;
 
   private final Timer timer = new Timer();
 
@@ -59,14 +60,14 @@ public class Robot extends TimedRobot {
   double testDouble = 0;
 
   private static final int controllerChannel = 0;
-//private static final int controller2Channel = 1;
+  private static final int controller2Channel = 1;
 
   private static final int pivotMotorIdx = 0;
   private static final int pivotMotorTimeout = 30;
 
   private static final int shootingHighPosition = 8000;
   private static final int shootingLowPosition = 75000;
-  private static final int intakePosition = 165000;
+  private static final int intakePosition = 160000;
 
   private static final double servoUp = .4;
   private static final double servoDown = .5;
@@ -75,16 +76,19 @@ public class Robot extends TimedRobot {
   private static final double deadband = 0.12;
 
   private static final int PIDSlot = 0;
-  private static final double driveMotorP = 0.0001;
-  private static final double driveMotorI = 0;
+  private static final double driveMotorP = 5e-5;
+  private static final double driveMotorI = 1e-6;
   private static final double driveMotorKIz = 0;
   private static final double driveMotorD = 0;
-  private static final double driveMotorFF = 0.000167;
+  private static final double driveMotorFF = 0.000156;
   private static final double driveMotorMaxOutput = 1;
-  private static final double driveMotorMaxVelocity = 3000; //rpm
+  private static final double driveMotorMinOutput = -1;
+  private static final double driveMotorMaxVelocity = 1000; //rpm
   private static final double driveMotorMaxAcceleration = 1500;
   private static final double driveMotorMinVelocity = 0;
   private static final double driveMotorAllowedError = 0;
+
+  private static final double ramp = 0.2;
 
   public static SendableChooser<String> autoChooser;
 
@@ -132,7 +136,9 @@ public class Robot extends TimedRobot {
 		pivotMotor.setSelectedSensorPosition(0, pivotMotorIdx, pivotMotorTimeout);
 
     // Setup drive motors
+    //frontRight.restoreFactoryDefaults();
     frontRight.setInverted(false);
+    frontRight.setOpenLoopRampRate(ramp);
     frontRightPID = frontRight.getPIDController();
     frontRightEncoder = frontRight.getEncoder();
     frontRightPID.setP(driveMotorP);
@@ -140,13 +146,14 @@ public class Robot extends TimedRobot {
     frontRightPID.setIZone(driveMotorKIz);
     frontRightPID.setD(driveMotorD);
     frontRightPID.setFF(driveMotorFF);
-    frontRightPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    frontRightPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
     frontRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
     frontRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    frontRightPID.setSmartMotionMinOutputVelocity(driveMotorAllowedError, PIDSlot);
+    frontRightPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
     frontRightPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
     
     rearRight.setInverted(false);
+    rearRight.setOpenLoopRampRate(ramp);
     rearRightPID = rearRight.getPIDController();
     rearRightEncoder = rearRight.getEncoder();
     rearRightPID.setP(driveMotorP);
@@ -154,13 +161,14 @@ public class Robot extends TimedRobot {
     rearRightPID.setIZone(driveMotorKIz);
     rearRightPID.setD(driveMotorD);
     rearRightPID.setFF(driveMotorFF);
-    rearRightPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    rearRightPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
     rearRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
     rearRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    rearRightPID.setSmartMotionMinOutputVelocity(driveMotorAllowedError, PIDSlot);
+    rearRightPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
     rearRightPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
 
     frontLeft.setInverted(true);
+    frontLeft.setOpenLoopRampRate(ramp);
     frontLeftPID = frontLeft.getPIDController();
     frontLeftEncoder = frontLeft.getEncoder();
     frontLeftPID.setP(driveMotorP);
@@ -168,13 +176,14 @@ public class Robot extends TimedRobot {
     frontLeftPID.setIZone(driveMotorKIz);
     frontLeftPID.setD(driveMotorD);
     frontLeftPID.setFF(driveMotorFF);
-    frontLeftPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    frontLeftPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
     frontLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
     frontLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    frontLeftPID.setSmartMotionMinOutputVelocity(driveMotorAllowedError, PIDSlot);
+    frontLeftPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
     frontLeftPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
 
     rearLeft.setInverted(true);
+    rearLeft.setOpenLoopRampRate(ramp);
     rearLeftPID = rearLeft.getPIDController();
     rearLeftEncoder = rearLeft.getEncoder();
     rearLeftPID.setP(driveMotorP);
@@ -182,10 +191,10 @@ public class Robot extends TimedRobot {
     rearLeftPID.setIZone(driveMotorKIz);
     rearLeftPID.setD(driveMotorD);
     rearLeftPID.setFF(driveMotorFF);
-    rearLeftPID.setOutputRange(-driveMotorMaxOutput, driveMotorMaxOutput);
+    rearLeftPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
     rearLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
     rearLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    rearLeftPID.setSmartMotionMinOutputVelocity(driveMotorAllowedError, PIDSlot);
+    rearLeftPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
     rearLeftPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
 
     //Setup feeder and shoorter motors
@@ -195,14 +204,16 @@ public class Robot extends TimedRobot {
     //Setup hood servo motor
     hoodServo = new Servo(0);
 
-    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
-
+    //Setup camera
+    CameraServer.startAutomaticCapture();
+    
+    //Setup Controllers
     controller1 = new XboxController(controllerChannel);
-//controller2 = new XboxController(controller2Channel);
+    controller2 = new XboxController(controller2Channel);
 
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", autoList);  
-
+    /*
     // Get the default instance of NetworkTables that was created automatically
     // when the robot program starts
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
@@ -222,15 +233,34 @@ public class Robot extends TimedRobot {
     testIntPub = table.getIntegerTopic("Test Int").publish();
     autoPub = table.getStringTopic("Auto Selection").publish();
 
+    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));
+
     SendableRegistry.addChild(robotDrive, frontLeft);
     SendableRegistry.addChild(robotDrive, rearLeft);
     SendableRegistry.addChild(robotDrive, frontRight);
     SendableRegistry.addChild(robotDrive, rearRight);
+    */
 
   }
 
   @Override
   public void robotPeriodic(){
+    //testDouble = frontLeftEncoder.getPosition();
+    //xPub.set(xAxis);
+    //yPub.set(yAxis);
+    //zPub.set(zAxis);
+    //testIntPub.set(testInt);
+    //testDoublePub.set(testDouble);
+  }
+
+  @Override
+  public void teleopInit(){
+    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
+    //robotDrive.driveCartesian(0, 0, 0);
+  }
+
+  @Override
+  public void teleopPeriodic() {
     // Use the joystick Y axis for forward movement, X axis for lateral
     // movement, and Z axis for rotation.
     yAxis = controller1.getLeftY();
@@ -245,56 +275,33 @@ public class Robot extends TimedRobot {
     zAxis = -zAxis;
     xAxis = -xAxis;
 
-    testDouble = frontLeftEncoder.getPosition();
-
-    xPub.set(xAxis);
-    yPub.set(yAxis);
-    zPub.set(zAxis);
-    testIntPub.set(testInt);
-    testDoublePub.set(testDouble);
-    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));
-  }
-
-  @Override
-  public void teleopInit(){
-
-  }
-
-  @Override
-  public void teleopPeriodic() {
-
-
     robotDrive.driveCartesian(yAxis, xAxis, zAxis);
+
  
-//if (controller1.getAButton()==true || controller2.getAButton()==true)   
-    if (controller1.getAButton()==true) {
+    if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(ControlMode.PercentOutput, -0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
       hoodServo.set(servoIntake);
     }
-//else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true))
-    else if (controller1.getBButton()==true && controller1.getRightBumper()==true) {
+    else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(ControlMode.PercentOutput,1);
       feederMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
-//else if (controller1.getBButton()==true || controller2.getBButton()==true)
-    else if (controller1.getBButton()==true){
+    else if (controller1.getBButton()==true || controller2.getBButton()==true){
       shooterMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
-//else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true))
-     else if (controller1.getXButton()==true && controller1.getRightBumper()==true) {
+    else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(ControlMode.PercentOutput,0.7);
       feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
      }
-//else if (controller1.getXButton()==true || controller2.getXButton()==true)
-     else if (controller1.getXButton()==true) {
+    else if (controller1.getXButton()==true || controller2.getXButton()==true){
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
      }
@@ -306,12 +313,16 @@ public class Robot extends TimedRobot {
         hoodServo.set(servoDown);
     }
 
-
   }
 
   @Override
   public void autonomousInit(){
       autoSelection = SmartDashboard.getString("Auto Selector", "None");
+      frontLeftEncoder.setPosition(0);
+      rearLeftEncoder.setPosition(0);
+      frontRightEncoder.setPosition(0);
+      rearRightEncoder.setPosition(0);
+
       timer.restart();
   }
 
@@ -322,37 +333,126 @@ public class Robot extends TimedRobot {
         turnOffAllMotors();
         break;
       case "Auto 1":
-          if(timer.get() < 1)
-            shooterMotor.set(ControlMode.PercentOutput, 0);
-          else if(timer.get() < 2){
-            feederMotor.set(ControlMode.PercentOutput, 1);
-          }
-          else if(timer.get() < 4){
-            //Neo Encoder Units = Revs
-            //GR = 10.71 - Wheel Circumference = 28.27in
-            //2.63 Inches per Rev
-            int position = 100;
-            feederMotor.set(ControlMode.PercentOutput,0);
-            shooterMotor.set(ControlMode.PercentOutput,0);
-            frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-            //rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-            //frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-            //rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          }
+        if(timer.get() < 1){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        }
+        else if(timer.get() < 5){
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          double position = -25;
+          feederMotor.set(ControlMode.PercentOutput,0);
+          shooterMotor.set(ControlMode.PercentOutput,0);
+          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else
+          turnOffAllMotors();
         break;
       case "Auto 2" :
-        if(timer.get() < 3){
-          frontLeftPID.setReference(1000, CANSparkMax.ControlType.kPosition);
+        if(timer.get() < 1){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 2.5){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
+          hoodServo.set(servoIntake);
         }
         else if(timer.get() < 6){
-          frontLeftPID.setReference(0, CANSparkMax.ControlType.kPosition);
+          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          
+          double position = -25;;
+          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
         }
-        else if(timer.get() < 9){
-          frontLeftPID.setReference(1000, CANSparkMax.ControlType.kPosition);
+        else if(timer.get() < 10){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          double position = 0;
+          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
         }
+        else if(timer.get() < 11)
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 12.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else
+          turnOffAllMotors();
         break;
       case "Auto 3" :
-        turnOffAllMotors();
+        if(timer.get() < 1){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+        }
+        else if(timer.get() < 1.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 2.5){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
+          hoodServo.set(servoIntake);
+        }
+        else if(timer.get() < 6){
+          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          
+          double position = -35;;
+          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 10){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          //Neo Encoder Units = Revs
+          //GR = 10.71 - Wheel Circumference = 28.27in
+          //2.63 Inches per Rev
+          double position = 0;
+          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+        }
+        else if(timer.get() < 11)
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+        else if(timer.get() < 12.5)
+          feederMotor.set(ControlMode.PercentOutput, 1);
+        else
+          turnOffAllMotors();
         break;
       default:
         turnOffAllMotors();
