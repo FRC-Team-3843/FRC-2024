@@ -16,9 +16,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.revrobotics.CANSparkMax;
@@ -50,6 +50,10 @@ public class Robot extends TimedRobot {
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
 
+ 
+  private boolean[] autoSteps = new boolean[10];
+  private double previousEndTime, leftPosition, rightPosition;
+
   private String autoSelection;
 
   DoublePublisher xPub, yPub, zPub, testDoublePub;
@@ -76,8 +80,8 @@ public class Robot extends TimedRobot {
   private static final double deadband = 0.12;
 
   private static final int PIDSlot = 0;
-  private static final double driveMotorP = 5e-5;
-  private static final double driveMotorI = 1e-6;
+  private static final double driveMotorP = .0001;
+  private static final double driveMotorI = .000001;
   private static final double driveMotorKIz = 0;
   private static final double driveMotorD = 0;
   private static final double driveMotorFF = 0.000156;
@@ -92,7 +96,7 @@ public class Robot extends TimedRobot {
 
   public static SendableChooser<String> autoChooser;
 
-  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5"};
+  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6"};
 
 
 
@@ -318,253 +322,494 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit(){
       autoSelection = SmartDashboard.getString("Auto Selector", "None");
+
+      //Neo Encoder Units = Revs
+      //GR = 10.71 - Wheel Circumference = 28.27in
+      //2.63 Inches per Rev
       frontLeftEncoder.setPosition(0);
       rearLeftEncoder.setPosition(0);
       frontRightEncoder.setPosition(0);
       rearRightEncoder.setPosition(0);
+      leftPosition = 0;
+      rightPosition = 0;
 
       timer.restart();
+      previousEndTime = timer.get();
+
+      for(int i = 0; i < 10; i++){
+        autoSteps[i] = false;
+      }
   }
 
   @Override
   public void autonomousPeriodic(){
-        double leftPreviousPosition;
-        double rightPreviousPosition;
-        double leftPosition;
-        double rightPosition;
     switch (autoSelection) {
       case "Do Nothing":
         turnOffAllMotors();
-        break;
+      break;
       
-        case "Auto 1":
-        if(timer.get() < 1){
+      case "Auto 1":
+        //Just shoot
+        if(!autoSteps[0]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           shooterMotor.set(ControlMode.PercentOutput, 1);
           hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 1.5){
+        else if(!autoSteps[1]){
           feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
         else
           turnOffAllMotors();
+          
         break;
       
         case "Auto 2" :
-        if(timer.get() < 1){
+        // Center field double auto
+        if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 1.5)
+        else if(!autoSteps[1]){
           feederMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 2.5){
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
           shooterMotor.set(ControlMode.PercentOutput, 0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -25;
+            rightPosition += -25;
+          }
         }
-        else if(timer.get() < 6){
+        else if(!autoSteps[3]){
           shooterMotor.set(ControlMode.PercentOutput, -0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          
-          double position = -25;;
-          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += 25;
+            rightPosition += 25;
+          }
         }
-        else if(timer.get() < 10){
+        else if(!autoSteps[5]){
           shooterMotor.set(ControlMode.PercentOutput, 0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
             hoodServo.set(servoDown);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          double position = 0;
-          frontLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(position, CANSparkMax.ControlType.kSmartMotion);
+
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[5] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 11)
+        else if(!autoSteps[6]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 12.5)
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[6] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[7]){
           feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
         else
           turnOffAllMotors();
         break;
       
         case "Auto 3" :
         //Left Side Facing Speaker from midfield
-        if(timer.get() < 1){
+        if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 1.5)
+        else if(!autoSteps[1]){
           feederMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 2.5){
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
           shooterMotor.set(ControlMode.PercentOutput, 0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -47;
+            rightPosition += -15.7;
+          }
         }
-        else if(timer.get() < 4.5){
-          double leftPosition1 = -47;
-          double rightPosition1 = -15;
-          double leftPosition2 = leftPosition1 + -5;
-          double rightPosition2 = rightPosition1 + -5;
+        else if(!autoSteps[3]){
           shooterMotor.set(ControlMode.PercentOutput, -0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 6){
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 10){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 11)
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 12.5)
-          feederMotor.set(ControlMode.PercentOutput, 1);
-        else
-          turnOffAllMotors();
-        break;
-      case "Auto 4":
-        //Left Side Facing Speaker from midfield
-
-        if(timer.get() < 1){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
-        }
-        else if(timer.get() < 1.5)
-          feederMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 2.5){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          hoodServo.set(servoIntake);
-        }
-        else if(timer.get() < 4.5){
-          shooterMotor.set(ControlMode.PercentOutput, -0.8);
-          feederMotor.set(ControlMode.PercentOutput, -0.6);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 6){
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition2, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition2, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 10){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          frontLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition1, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition1, CANSparkMax.ControlType.kSmartMotion);
-        }
-        else if(timer.get() < 11)
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 12.5)
-          feederMotor.set(ControlMode.PercentOutput, 1);
-        else
-          turnOffAllMotors();
-        break;
-      case "Auto 5":
-        if(timer.get() < 1){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
-        }
-        else if(timer.get() < 1.5)
-          feederMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 12){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
-        }
-        else if(timer.get() < 15){
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          double leftPosition = 0;
-          double rightPosition = 0;
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
           rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += -5;
+            rightPosition += -5;
+          }
+        }
+        else if(!autoSteps[4]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 5;
+            rightPosition += 5;
+          }
+        }
+        else if(!autoSteps[5]){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[5] = true;
+            previousEndTime = timer.get();
+            leftPosition += 47;
+            rightPosition += 15.7;
+          }
+        }
+        else if(!autoSteps[6]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[6] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[7]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[8]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[8] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else
+          turnOffAllMotors();
+        break;
+      case "Auto 4":
+        //Right Side Facing Speaker from midfield
+        if(!autoSteps[0]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[1]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
+          hoodServo.set(servoIntake);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -15.7;
+            rightPosition += -47;
+          }
+        }
+        else if(!autoSteps[3]){
+          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += -5;
+            rightPosition += -5;
+          }
+        }
+        else if(!autoSteps[4]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 5;
+            rightPosition += 5;
+          }
+        }
+        else if(!autoSteps[5]){
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[5] = true;
+            previousEndTime = timer.get();
+            leftPosition += 15.7;
+            rightPosition += 47;
+          }
+        }
+        else if(!autoSteps[6]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[6] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[7]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[8]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[8] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else
+          turnOffAllMotors();
+      case "Auto 5":
+        //Left Side Facing Speaker from midfield
+        if(!autoSteps[0]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[1]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -47;
+            rightPosition += -15.7;
+          }
+        }
+        else if(!autoSteps[3]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += -5;
+            rightPosition += -5;
+          }
+        }
+        else if(!autoSteps[4]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
         else
           turnOffAllMotors();
         break;
       case "Auto 6":
-        if(timer.get() < 1){
+        //Right Side Facing Speaker from midfield
+        if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 1.5)
+        else if(!autoSteps[1]){
           feederMotor.set(ControlMode.PercentOutput, 1);
-        else if(timer.get() < 12){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
-        else if(timer.get() < 15){
-          //Neo Encoder Units = Revs
-          //GR = 10.71 - Wheel Circumference = 28.27in
-          //2.63 Inches per Rev
-          double leftPosition = 0;
-          double rightPosition = 0;
+        else if(!autoSteps[2]){
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -15.7;
+            rightPosition += -47;
+          }
+        }
+        else if(!autoSteps[3]){
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
           rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += -5;
+            rightPosition += -5;
+          }
+        }
+        else if(!autoSteps[4]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
         }
         else
           turnOffAllMotors();
