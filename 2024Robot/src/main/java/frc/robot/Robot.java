@@ -70,10 +70,12 @@ public class Robot extends TimedRobot {
   private static final int pivotMotorTimeout = 30;
 
   private static final int shootingHighPosition = 8000;
-  private static final int shootingLowPosition = 75000;
+  private static final int shootingLowPosition = 73000;
+  //75000
   private static final int intakePosition = 160000;
 
-  private static final double servoUp = .4;
+
+  private static final double servoUp = .37;
   private static final double servoDown = .5;
   private static final double servoIntake = .7;
 
@@ -300,7 +302,7 @@ public class Robot extends TimedRobot {
       hoodServo.set(servoDown);
     }
     else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
-      shooterMotor.set(ControlMode.PercentOutput,0.7);
+      shooterMotor.set(ControlMode.PercentOutput,1);
       feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
@@ -510,8 +512,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -5;
-            rightPosition += -5;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[4]){
@@ -526,8 +528,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
-            leftPosition += 5;
-            rightPosition += 5;
+            leftPosition += 15;
+            rightPosition += 15;
           }
         }
         else if(!autoSteps[5]){
@@ -624,8 +626,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -5;
-            rightPosition += -5;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[4]){
@@ -640,8 +642,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
-            leftPosition += 5;
-            rightPosition += 5;
+            leftPosition += 15;
+            rightPosition += 15;
           }
         }
         else if(!autoSteps[5]){
@@ -733,8 +735,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -5;
-            rightPosition += -5;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[4]){
@@ -794,8 +796,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -5;
-            rightPosition += -5;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[4]){
