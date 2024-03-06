@@ -468,7 +468,7 @@ public class Robot extends TimedRobot {
         break;
       
         case "Auto 3":
-        //Left Side Facing Speaker from midfield
+        //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
@@ -608,7 +608,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
       case "Auto 4":
-        //Right Side Facing Speaker from midfield
+        //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
@@ -748,7 +748,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
       case "Auto 5":
-        //Left Side Facing Speaker from midfield
+        //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
@@ -809,7 +809,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
       case "Auto 6":
-        //Right Side Facing Speaker from midfield
+        //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
