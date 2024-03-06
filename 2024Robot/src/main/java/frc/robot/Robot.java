@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
   private double xAxis = 0, yAxis = 0, zAxis = 0;
 
  
-  private boolean[] autoSteps = new boolean[10];
+  private boolean[] autoSteps = new boolean[20];
   private double previousEndTime, leftPosition, rightPosition;
 
   private String autoSelection;
@@ -338,7 +338,7 @@ public class Robot extends TimedRobot {
       timer.restart();
       previousEndTime = timer.get();
 
-      for(int i = 0; i < 10; i++){
+      for(int i = 0; i < 20; i++){
         autoSteps[i] = false;
       }
   }
@@ -467,7 +467,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
       
-        case "Auto 3" :
+        case "Auto 3":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(ControlMode.PercentOutput, 1);
@@ -497,8 +497,8 @@ public class Robot extends TimedRobot {
           if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
-            leftPosition += -47;
-            rightPosition += -15.7;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[3]){
@@ -512,14 +512,11 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -15;
-            rightPosition += -15;
+            leftPosition += -30;
+            rightPosition += 0;
           }
         }
         else if(!autoSteps[4]){
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -528,13 +525,11 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
-            leftPosition += 15;
-            rightPosition += 15;
+            leftPosition += -20;
+            rightPosition += -20;
           }
         }
         else if(!autoSteps[5]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -543,11 +538,16 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[5] = true;
             previousEndTime = timer.get();
-            leftPosition += 47;
-            rightPosition += 15.7;
+            leftPosition += 20;
+            rightPosition += 20;
           }
         }
         else if(!autoSteps[6]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -556,23 +556,49 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[6] = true;
             previousEndTime = timer.get();
-            leftPosition += 0;
+            leftPosition += 30;
             rightPosition += 0;
           }
         }
         else if(!autoSteps[7]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-          if(timer.get() > previousEndTime + 1){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += 15;
+            rightPosition += 15;
+          }
+        }
+        else if(!autoSteps[8]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[8] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
             rightPosition += 0;
           }
         }
-        else if(!autoSteps[8]){
+        else if(!autoSteps[9]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[9] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[10]){
           feederMotor.set(ControlMode.PercentOutput, 1);
           if(timer.get() > previousEndTime + 0.5){
-            autoSteps[8] = true;
+            autoSteps[10] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
             rightPosition += 0;
@@ -611,8 +637,8 @@ public class Robot extends TimedRobot {
           if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
-            leftPosition += -15.7;
-            rightPosition += -47;
+            leftPosition += -15;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[3]){
@@ -626,14 +652,11 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -15;
-            rightPosition += -15;
+            leftPosition += 0;
+            rightPosition += -30;
           }
         }
         else if(!autoSteps[4]){
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -642,13 +665,11 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
-            leftPosition += 15;
-            rightPosition += 15;
+            leftPosition += -20;
+            rightPosition += -20;
           }
         }
         else if(!autoSteps[5]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
-          feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -657,11 +678,16 @@ public class Robot extends TimedRobot {
           ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[5] = true;
             previousEndTime = timer.get();
-            leftPosition += 15.7;
-            rightPosition += 47;
+            leftPosition += 20;
+            rightPosition += 20;
           }
         }
         else if(!autoSteps[6]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
+            hoodServo.set(servoDown);
+          shooterMotor.set(ControlMode.PercentOutput, 0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -671,22 +697,48 @@ public class Robot extends TimedRobot {
             autoSteps[6] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
-            rightPosition += 0;
+            rightPosition += 30;
           }
         }
         else if(!autoSteps[7]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
-          if(timer.get() > previousEndTime + 1){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
             autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += 15;
+            rightPosition += 15;
+          }
+        }
+        else if(!autoSteps[8]){
+          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
+          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
+          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
+          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+            autoSteps[8] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
             rightPosition += 0;
           }
         }
-        else if(!autoSteps[8]){
+        else if(!autoSteps[9]){
+          shooterMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[9] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[10]){
           feederMotor.set(ControlMode.PercentOutput, 1);
           if(timer.get() > previousEndTime + 0.5){
-            autoSteps[8] = true;
+            autoSteps[10] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
             rightPosition += 0;
@@ -694,6 +746,7 @@ public class Robot extends TimedRobot {
         }
         else
           turnOffAllMotors();
+        break;
       case "Auto 5":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
@@ -719,11 +772,11 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[2]){
           feederMotor.set(ControlMode.PercentOutput, 0);
           shooterMotor.set(ControlMode.PercentOutput, 0);
-          if(timer.get() > previousEndTime + 0.5){
+          if(timer.get() > previousEndTime + 10){
             autoSteps[2] = true;
             previousEndTime = timer.get();
             leftPosition += -47;
-            rightPosition += -15.7;
+            rightPosition += -15;
           }
         }
         else if(!autoSteps[3]){
@@ -780,10 +833,10 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[2]){
           feederMotor.set(ControlMode.PercentOutput, 0);
           shooterMotor.set(ControlMode.PercentOutput, 0);
-          if(timer.get() > previousEndTime + 0.5){
+          if(timer.get() > previousEndTime + 10){
             autoSteps[2] = true;
             previousEndTime = timer.get();
-            leftPosition += -15.7;
+            leftPosition += -15;
             rightPosition += -47;
           }
         }
