@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.StringPublisher;
@@ -49,6 +50,8 @@ public class Robot extends TimedRobot {
   private Servo hoodServo;
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
+  private double frontLeftOutput, rearLeftOutput, frontRightOutput, rearRightOutput, largestOutput;
+
 
  
   private boolean[] autoSteps = new boolean[20];
@@ -261,17 +264,17 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit(){
-    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
-    //robotDrive.driveCartesian(0, 0, 0);
+    //robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
   }
 
   @Override
   public void teleopPeriodic() {
     // Use the joystick Y axis for forward movement, X axis for lateral
     // movement, and Z axis for rotation.
-    yAxis = controller1.getLeftY();
-    xAxis = controller1.getRightX();
-    zAxis = controller1.getLeftX();
+    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), deadband);
+    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
+    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
+    /* 
     if (yAxis < deadband && yAxis > -deadband) 
       yAxis = 0;
     if (xAxis < deadband && xAxis > -deadband) 
@@ -280,8 +283,35 @@ public class Robot extends TimedRobot {
       zAxis = 0;
     zAxis = -zAxis;
     xAxis = -xAxis;
+    */
 
-    robotDrive.driveCartesian(yAxis, xAxis, zAxis);
+    //robotDrive.driveCartesian(yAxis, xAxis, zAxis);
+    frontLeftOutput = yAxis + xAxis + zAxis;
+    frontRightOutput = yAxis - xAxis - zAxis;
+    rearLeftOutput = yAxis - xAxis + zAxis;
+    rearRightOutput = yAxis + xAxis - zAxis;
+
+    largestOutput = Math.abs(frontLeftOutput);
+    if (largestOutput <  Math.abs(frontRightOutput)){
+      largestOutput = frontRightOutput;
+    }
+    if (largestOutput < Math.abs(rearLeftOutput)){
+      largestOutput = rearLeftOutput;
+    }
+    if (largestOutput < Math.abs(rearRightOutput)) {
+      largestOutput = rearRightOutput;
+    }
+    if (largestOutput > 1) {
+      frontLeftOutput = frontLeftOutput / largestOutput;
+      frontRightOutput = frontRightOutput / largestOutput;
+      rearLeftOutput = rearLeftOutput / largestOutput;
+      rearRightOutput = rearRightOutput / largestOutput;
+    }
+
+    frontLeft.set(frontLeftOutput);
+    frontRight.set(frontRightOutput);
+    rearLeft.set(rearLeftOutput);
+    rearRight.set(rearRightOutput);
 
  
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
