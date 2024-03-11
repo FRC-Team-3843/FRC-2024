@@ -31,6 +31,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 /** This is a demo program showing how to use Mecanum control with the MecanumDrive class. */
 public class Robot extends TimedRobot {
@@ -45,7 +46,8 @@ public class Robot extends TimedRobot {
   private CANSparkMax frontLeft, rearLeft, frontRight, rearRight;
   private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
   private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
-  private TalonSRX pivotMotor, feederMotor, shooterMotor;
+  private TalonSRX pivotMotor, feederMotor, shieldMotor;
+  private TalonFX shooterMotor;
 
   private Servo hoodServo;
 
@@ -116,8 +118,10 @@ public class Robot extends TimedRobot {
     rearRight = new CANSparkMax(4,MotorType.kBrushless);
     
     pivotMotor = new TalonSRX(5);
-    shooterMotor = new TalonSRX(6);
+    shieldMotor = new TalonSRX(6);
     feederMotor = new TalonSRX(7);
+    
+    shooterMotor = new TalonFX(8);
 
 
 
@@ -315,24 +319,24 @@ public class Robot extends TimedRobot {
 
  
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
-      shooterMotor.set(ControlMode.PercentOutput, -0.8);
+      shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
       hoodServo.set(servoIntake);
     }
     else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
-      shooterMotor.set(ControlMode.PercentOutput,1);
+      shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
     else if (controller1.getBButton()==true || controller2.getBButton()==true){
-      shooterMotor.set(ControlMode.PercentOutput,1);
+      shooterMotor.set(1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       hoodServo.set(servoDown);
     }
     else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
-      shooterMotor.set(ControlMode.PercentOutput,1);
+      shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
       hoodServo.set(servoUp);
@@ -343,7 +347,7 @@ public class Robot extends TimedRobot {
      }
     else{
       feederMotor.set(ControlMode.PercentOutput,0);
-      shooterMotor.set(ControlMode.PercentOutput,0);
+      shooterMotor.set(0);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
         hoodServo.set(servoDown);
@@ -384,7 +388,7 @@ public class Robot extends TimedRobot {
         //Just shoot
         if(!autoSteps[0]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
@@ -410,7 +414,7 @@ public class Robot extends TimedRobot {
         case "Auto 2" :
         // Center field double auto
         if(!autoSteps[0]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
@@ -430,7 +434,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[2]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
@@ -442,7 +446,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[3]){
-          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -457,7 +461,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[5]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
@@ -476,7 +480,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[6]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           if(timer.get() > previousEndTime + 1){
             autoSteps[6] = true;
             previousEndTime = timer.get();
@@ -500,7 +504,7 @@ public class Robot extends TimedRobot {
         case "Auto 3":
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
@@ -520,7 +524,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[2]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
@@ -532,7 +536,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[3]){
-          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -576,7 +580,7 @@ public class Robot extends TimedRobot {
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
             hoodServo.set(servoDown);
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -617,7 +621,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[9]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           if(timer.get() > previousEndTime + 1){
             autoSteps[9] = true;
             previousEndTime = timer.get();
@@ -640,7 +644,7 @@ public class Robot extends TimedRobot {
       case "Auto 4":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
@@ -660,7 +664,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[2]){
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
           hoodServo.set(servoIntake);
@@ -672,7 +676,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[3]){
-          shooterMotor.set(ControlMode.PercentOutput, -0.8);
+          shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -716,7 +720,7 @@ public class Robot extends TimedRobot {
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
             hoodServo.set(servoDown);
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -757,7 +761,7 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[9]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           if(timer.get() > previousEndTime + 1){
             autoSteps[9] = true;
             previousEndTime = timer.get();
@@ -780,7 +784,7 @@ public class Robot extends TimedRobot {
       case "Auto 5":
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
@@ -801,7 +805,7 @@ public class Robot extends TimedRobot {
         }
         else if(!autoSteps[2]){
           feederMotor.set(ControlMode.PercentOutput, 0);
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           if(timer.get() > previousEndTime + 10){
             autoSteps[2] = true;
             previousEndTime = timer.get();
@@ -841,7 +845,7 @@ public class Robot extends TimedRobot {
       case "Auto 6":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
-          shooterMotor.set(ControlMode.PercentOutput, 1);
+          shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           hoodServo.set(servoDown);
           if(timer.get() > previousEndTime + 1){
@@ -862,7 +866,7 @@ public class Robot extends TimedRobot {
         }
         else if(!autoSteps[2]){
           feederMotor.set(ControlMode.PercentOutput, 0);
-          shooterMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
           if(timer.get() > previousEndTime + 10){
             autoSteps[2] = true;
             previousEndTime = timer.get();
@@ -921,7 +925,7 @@ public class Robot extends TimedRobot {
     rearLeft.set(0);
     rearRight.set(0);
     frontRight.set(0);
-    shooterMotor.set(ControlMode.PercentOutput,0);
+    shooterMotor.set(0);
     feederMotor.set(ControlMode.PercentOutput, 0);
     pivotMotor.set(ControlMode.PercentOutput, 0);
   }
