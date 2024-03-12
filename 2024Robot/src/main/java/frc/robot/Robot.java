@@ -4,26 +4,23 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Servo;
-//import edu.wpi.first.util.sendable.SendableRegistry;
-//import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -32,28 +29,30 @@ import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-/** This is a demo program showing how to use Mecanum control with the MecanumDrive class. */
 public class Robot extends TimedRobot {
   
-
-  private MecanumDrive robotDrive;
-
   private XboxController controller1, controller2;
 
   private final Timer timer = new Timer();
 
   private CANSparkMax frontLeft, rearLeft, frontRight, rearRight;
-  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
-  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
-  private TalonSRX pivotMotor, feederMotor, shieldMotor;
-  private TalonFX shooterMotor;
 
-  private Servo hoodServo;
+  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
+
+  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
+
+  private TalonSRX pivotMotor, feederMotor, shieldMotor;
+
+  private TalonFX shooterMotor;
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
 
+  private boolean velocityMode = false, fieldCentric = false;
+  
+  private double frontLeftOutput, rearLeftOutput, frontRightOutput, rearRightOutput, largestOutput;
  
   private boolean[] autoSteps = new boolean[20];
+
   private double previousEndTime, leftPosition, rightPosition;
 
   private String autoSelection;
@@ -71,15 +70,15 @@ public class Robot extends TimedRobot {
   private static final int pivotMotorIdx = 0;
   private static final int pivotMotorTimeout = 30;
 
+  private static final int shieldMotorIdx = 0;
+  private static final int shieldMotorTimeout = 30;
+
   private static final int shootingHighPosition = 8000;
   private static final int shootingLowPosition = 73000;
-  //75000
+
   private static final int intakePosition = 160000;
 
-
-  private static final double servoUp = .37;
-  private static final double servoDown = .5;
-  private static final double servoIntake = .7;
+  private static final double[] shieldPos = {0, 30, 60};
 
   private static final double deadband = 0.12;
 
@@ -91,19 +90,18 @@ public class Robot extends TimedRobot {
   private static final double driveMotorFF = 0.000156;
   private static final double driveMotorMaxOutput = 1;
   private static final double driveMotorMinOutput = -1;
-  private static final double driveMotorMaxVelocity = 1000; //rpm
-  private static final double driveMotorMaxAcceleration = 1500;
+  private static final double driveMotorMaxVelocity = 5000; //rpm
+  private static final double driveMotorMaxAcceleration = 8000;
   private static final double driveMotorMinVelocity = 0;
   private static final double driveMotorAllowedError = 0;
 
   private static final double ramp = 0.2;
 
+  private static final double maxWheelVelocity = 5000;
+
   public static SendableChooser<String> autoChooser;
 
   private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6"};
-
-
-
 
 
   @Override
@@ -136,14 +134,33 @@ public class Robot extends TimedRobot {
     pivotMotor.config_kF(pivotMotorIdx, 0.02325, pivotMotorTimeout);
 		pivotMotor.config_kP(pivotMotorIdx, 2, pivotMotorTimeout);
 		pivotMotor.config_kI(pivotMotorIdx, 0.0008, pivotMotorTimeout);
-		pivotMotor.config_kD(pivotMotorIdx, 15, pivotMotorTimeout);
+		pivotMotor.config_kD(pivotMotorIdx, 2, pivotMotorTimeout);
     //Set acceleration and vcruise velocity
-		pivotMotor.configMotionCruiseVelocity(25000, pivotMotorIdx);
-		pivotMotor.configMotionAcceleration(25000, pivotMotorTimeout);
+		pivotMotor.configMotionCruiseVelocity(100000, pivotMotorIdx);
+		pivotMotor.configMotionAcceleration(60000, pivotMotorTimeout);
     //Set Smoothing
-    pivotMotor.configMotionSCurveStrength(2);
+    pivotMotor.configMotionSCurveStrength(0);
     // Zero the sensor once on robot boot up
 		pivotMotor.setSelectedSensorPosition(0, pivotMotorIdx, pivotMotorTimeout);
+
+    //Setup Shield Motor
+    shieldMotor.configFactoryDefault();
+    //Set Sensor Feedback Device
+    shieldMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,shieldMotorIdx,shieldMotorTimeout);
+    //Invert Sensor
+    shieldMotor.setSensorPhase(false);
+    //Invert Motor
+    shieldMotor.setInverted(false);
+    //Set Maximum Output
+    shieldMotor.configPeakOutputForward(.6);
+    shieldMotor.configPeakOutputReverse(-.6);
+    //Set PID 
+    shieldMotor.config_kF(shieldMotorIdx, 0, shieldMotorTimeout);
+		shieldMotor.config_kP(shieldMotorIdx, 80, shieldMotorTimeout);
+		shieldMotor.config_kI(shieldMotorIdx, 0, shieldMotorTimeout);
+		shieldMotor.config_kD(shieldMotorIdx, 0, shieldMotorTimeout);
+    // Zero the sensor once on robot boot up
+		shieldMotor.setSelectedSensorPosition(30, shieldMotorIdx, shieldMotorTimeout);
 
     // Setup drive motors
     //frontRight.restoreFactoryDefaults();
@@ -211,9 +228,6 @@ public class Robot extends TimedRobot {
     feederMotor.setInverted(false);
     shooterMotor.setInverted(true);
 
-    //Setup hood servo motor
-    hoodServo = new Servo(0);
-
     //Setup camera
     CameraServer.startAutomaticCapture();
     
@@ -223,7 +237,7 @@ public class Robot extends TimedRobot {
 
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", autoList);  
-    /*
+    
     // Get the default instance of NetworkTables that was created automatically
     // when the robot program starts
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
@@ -243,86 +257,110 @@ public class Robot extends TimedRobot {
     testIntPub = table.getIntegerTopic("Test Int").publish();
     autoPub = table.getStringTopic("Auto Selection").publish();
 
-    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));
-
-    SendableRegistry.addChild(robotDrive, frontLeft);
-    SendableRegistry.addChild(robotDrive, rearLeft);
-    SendableRegistry.addChild(robotDrive, frontRight);
-    SendableRegistry.addChild(robotDrive, rearRight);
-    */
+    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));    
 
   }
 
   @Override
   public void robotPeriodic(){
-    //testDouble = frontLeftEncoder.getPosition();
-    //xPub.set(xAxis);
-    //yPub.set(yAxis);
-    //zPub.set(zAxis);
-    //testIntPub.set(testInt);
-    //testDoublePub.set(testDouble);
+    // Use the joystick Y axis for forward movement, X axis for lateral
+    // movement, and Z axis for rotation.
+    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), (deadband*2));
+    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
+    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
+    
+    xPub.set(xAxis);
+    yPub.set(yAxis);
+    zPub.set(zAxis);
   }
 
   @Override
   public void teleopInit(){
-    robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
-    //robotDrive.driveCartesian(0, 0, 0);
+    //robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
   }
 
   @Override
   public void teleopPeriodic() {
-    // Use the joystick Y axis for forward movement, X axis for lateral
-    // movement, and Z axis for rotation.
-    yAxis = controller1.getLeftY();
-    xAxis = controller1.getRightX();
-    zAxis = controller1.getLeftX();
-    if (yAxis < deadband && yAxis > -deadband) 
-      yAxis = 0;
-    if (xAxis < deadband && xAxis > -deadband) 
-      xAxis = 0;
-    if (zAxis < deadband && zAxis > -deadband) 
-      zAxis = 0;
-    zAxis = -zAxis;
-    xAxis = -xAxis;
 
-    robotDrive.driveCartesian(yAxis, xAxis, zAxis);
+    //robotDrive.driveCartesian(yAxis, xAxis, zAxis);
+    frontLeftOutput = yAxis + xAxis + zAxis;
+    frontRightOutput = yAxis - xAxis - zAxis;
+    rearLeftOutput = yAxis - xAxis + zAxis;
+    rearRightOutput = yAxis + xAxis - zAxis;
 
- 
+    largestOutput = Math.abs(frontLeftOutput);
+    if (largestOutput <  Math.abs(frontRightOutput)){
+      largestOutput = frontRightOutput;
+    }
+    if (largestOutput < Math.abs(rearLeftOutput)){
+      largestOutput = rearLeftOutput;
+    }
+    if (largestOutput < Math.abs(rearRightOutput)) {
+      largestOutput = rearRightOutput;
+    }
+    if (largestOutput > 1) {
+      frontLeftOutput = frontLeftOutput / largestOutput;
+      frontRightOutput = frontRightOutput / largestOutput;
+      rearLeftOutput = rearLeftOutput / largestOutput;
+      rearRightOutput = rearRightOutput / largestOutput;
+    }
+
+
+
+    if(velocityMode){
+      frontLeftPID.setReference(maxWheelVelocity * frontLeftOutput, ControlType.kSmartVelocity);
+      frontRightPID.setReference(maxWheelVelocity * frontRightOutput, ControlType.kSmartVelocity);
+      rearLeftPID.setReference(maxWheelVelocity * rearLeftOutput, ControlType.kSmartVelocity);
+      rearRightPID.setReference(maxWheelVelocity * rearRightOutput, ControlType.kSmartVelocity);
+    }  
+    else{
+      frontLeft.set(frontLeftOutput);
+      frontRight.set(frontRightOutput);
+      rearLeft.set(rearLeftOutput);
+      rearRight.set(rearRightOutput);
+    }
+      
+    if(controller1.getStartButtonPressed())
+      velocityMode = !velocityMode;
+
+    if(controller1.getBackButtonPressed())
+      fieldCentric = !fieldCentric;
+
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
-      hoodServo.set(servoIntake);
+      if(pivotMotor.getSelectedSensorPosition() > shootingLowPosition)
+        shieldMotor.set(ControlMode.Position, shieldPos[0]);
     }
     else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput,1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
-      hoodServo.set(servoDown);
+      shieldMotor.set(ControlMode.Position, shieldPos[1]);
     }
     else if (controller1.getBButton()==true || controller2.getBButton()==true){
       shooterMotor.set(1);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
-      hoodServo.set(servoDown);
+      shieldMotor.set(ControlMode.Position, shieldPos[1]);
     }
     else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput, 1);
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
-      hoodServo.set(servoUp);
+      shieldMotor.set(ControlMode.Position, shieldPos[2]);
      }
     else if (controller1.getXButton()==true || controller2.getXButton()==true){
       pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
-      hoodServo.set(servoUp);
+      shieldMotor.set(ControlMode.Position, shieldPos[2]);
      }
     else{
       feederMotor.set(ControlMode.PercentOutput,0);
       shooterMotor.set(0);
       pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
       if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-        hoodServo.set(servoDown);
+        shieldMotor.set(ControlMode.Position, shieldPos[1]);
     }
-
   }
 
   @Override
@@ -359,7 +397,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           shooterMotor.set(1);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -386,7 +424,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -407,7 +445,7 @@ public class Robot extends TimedRobot {
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          hoodServo.set(servoIntake);
+          shieldMotor.set(ControlMode.Position, shieldPos[0]);
           if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
@@ -435,7 +473,7 @@ public class Robot extends TimedRobot {
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
+            shieldMotor.set(ControlMode.Position, shieldPos[1]);
 
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -476,7 +514,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -497,7 +535,7 @@ public class Robot extends TimedRobot {
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          hoodServo.set(servoIntake);
+          shieldMotor.set(ControlMode.Position, shieldPos[0]);
           if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
@@ -549,7 +587,7 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[6]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
+            shieldMotor.set(ControlMode.Position, shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -616,7 +654,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -637,7 +675,7 @@ public class Robot extends TimedRobot {
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          hoodServo.set(servoIntake);
+          shieldMotor.set(ControlMode.Position, shieldPos[0]);
           if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
@@ -689,7 +727,7 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[6]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
           if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            hoodServo.set(servoDown);
+            shieldMotor.set(ControlMode.Position, shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -756,7 +794,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -817,7 +855,7 @@ public class Robot extends TimedRobot {
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          hoodServo.set(servoDown);
+          shieldMotor.set(ControlMode.Position, shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
