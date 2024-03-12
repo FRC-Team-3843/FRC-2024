@@ -16,11 +16,11 @@ import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.SendableRegistry;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -46,6 +46,8 @@ public class Robot extends TimedRobot {
   private TalonFX shooterMotor;
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
+
+  private boolean velocityMode = false, fieldCentric = false;
   
   private double frontLeftOutput, rearLeftOutput, frontRightOutput, rearRightOutput, largestOutput;
  
@@ -88,12 +90,14 @@ public class Robot extends TimedRobot {
   private static final double driveMotorFF = 0.000156;
   private static final double driveMotorMaxOutput = 1;
   private static final double driveMotorMinOutput = -1;
-  private static final double driveMotorMaxVelocity = 1000; //rpm
-  private static final double driveMotorMaxAcceleration = 1500;
+  private static final double driveMotorMaxVelocity = 5000; //rpm
+  private static final double driveMotorMaxAcceleration = 8000;
   private static final double driveMotorMinVelocity = 0;
   private static final double driveMotorAllowedError = 0;
 
   private static final double ramp = 0.2;
+
+  private static final double maxWheelVelocity = 5000;
 
   public static SendableChooser<String> autoChooser;
 
@@ -148,8 +152,8 @@ public class Robot extends TimedRobot {
     //Invert Motor
     shieldMotor.setInverted(false);
     //Set Maximum Output
-    shieldMotor.configPeakOutputForward(.4);
-    shieldMotor.configPeakOutputReverse(-.4);
+    shieldMotor.configPeakOutputForward(.6);
+    shieldMotor.configPeakOutputReverse(-.6);
     //Set PID 
     shieldMotor.config_kF(shieldMotorIdx, 0, shieldMotorTimeout);
 		shieldMotor.config_kP(shieldMotorIdx, 80, shieldMotorTimeout);
@@ -261,7 +265,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic(){
     // Use the joystick Y axis for forward movement, X axis for lateral
     // movement, and Z axis for rotation.
-    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), deadband);
+    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), (deadband*2));
     xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
     zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
     
@@ -277,7 +281,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    
+
     //robotDrive.driveCartesian(yAxis, xAxis, zAxis);
     frontLeftOutput = yAxis + xAxis + zAxis;
     frontRightOutput = yAxis - xAxis - zAxis;
@@ -301,17 +305,33 @@ public class Robot extends TimedRobot {
       rearRightOutput = rearRightOutput / largestOutput;
     }
 
-    frontLeft.set(frontLeftOutput);
-    frontRight.set(frontRightOutput);
-    rearLeft.set(rearLeftOutput);
-    rearRight.set(rearRightOutput);
 
- 
+
+    if(velocityMode){
+      frontLeftPID.setReference(maxWheelVelocity * frontLeftOutput, ControlType.kSmartVelocity);
+      frontRightPID.setReference(maxWheelVelocity * frontRightOutput, ControlType.kSmartVelocity);
+      rearLeftPID.setReference(maxWheelVelocity * rearLeftOutput, ControlType.kSmartVelocity);
+      rearRightPID.setReference(maxWheelVelocity * rearRightOutput, ControlType.kSmartVelocity);
+    }  
+    else{
+      frontLeft.set(frontLeftOutput);
+      frontRight.set(frontRightOutput);
+      rearLeft.set(rearLeftOutput);
+      rearRight.set(rearRightOutput);
+    }
+      
+    if(controller1.getStartButtonPressed())
+      velocityMode = !velocityMode;
+
+    if(controller1.getBackButtonPressed())
+      fieldCentric = !fieldCentric;
+
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, intakePosition);
-      shieldMotor.set(ControlMode.Position, shieldPos[0]);
+      if(pivotMotor.getSelectedSensorPosition() > shootingLowPosition)
+        shieldMotor.set(ControlMode.Position, shieldPos[0]);
     }
     else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(1);
