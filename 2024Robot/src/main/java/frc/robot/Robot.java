@@ -4,13 +4,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Servo;
-//import edu.wpi.first.util.sendable.SendableRegistry;
-//import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -33,23 +29,21 @@ import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-/** This is a demo program showing how to use Mecanum control with the MecanumDrive class. */
 public class Robot extends TimedRobot {
   
-
-  private MecanumDrive robotDrive;
-
   private XboxController controller1, controller2;
 
   private final Timer timer = new Timer();
 
   private CANSparkMax frontLeft, rearLeft, frontRight, rearRight;
-  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
-  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
-  private TalonSRX pivotMotor, feederMotor, shieldMotor;
-  private TalonFX shooterMotor;
 
-  private Servo hoodServo;
+  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
+
+  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
+
+  private TalonSRX pivotMotor, feederMotor, shieldMotor;
+
+  private TalonFX shooterMotor;
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
   
@@ -82,8 +76,6 @@ public class Robot extends TimedRobot {
 
   private static final int intakePosition = 160000;
 
-  //private static final double[] servoPos = {.37, .5, .7}
-
   private static final double[] shieldPos = {0, 30, 60};
 
   private static final double deadband = 0.12;
@@ -106,9 +98,6 @@ public class Robot extends TimedRobot {
   public static SendableChooser<String> autoChooser;
 
   private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6"};
-
-
-
 
 
   @Override
@@ -235,9 +224,6 @@ public class Robot extends TimedRobot {
     feederMotor.setInverted(false);
     shooterMotor.setInverted(true);
 
-    //Setup hood servo motor
-    //hoodServo = new Servo(0);
-
     //Setup camera
     CameraServer.startAutomaticCapture();
     
@@ -247,7 +233,7 @@ public class Robot extends TimedRobot {
 
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", autoList);  
-    /*
+    
     // Get the default instance of NetworkTables that was created automatically
     // when the robot program starts
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
@@ -267,24 +253,21 @@ public class Robot extends TimedRobot {
     testIntPub = table.getIntegerTopic("Test Int").publish();
     autoPub = table.getStringTopic("Auto Selection").publish();
 
-    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));
-
-    SendableRegistry.addChild(robotDrive, frontLeft);
-    SendableRegistry.addChild(robotDrive, rearLeft);
-    SendableRegistry.addChild(robotDrive, frontRight);
-    SendableRegistry.addChild(robotDrive, rearRight);
-    */
+    autoPub.set(SmartDashboard.getString("Auto Selector", "None"));    
 
   }
 
   @Override
   public void robotPeriodic(){
-    //testDouble = frontLeftEncoder.getPosition();
-    //xPub.set(xAxis);
-    //yPub.set(yAxis);
-    //zPub.set(zAxis);
-    //testIntPub.set(testInt);
-    //testDoublePub.set(testDouble);
+    // Use the joystick Y axis for forward movement, X axis for lateral
+    // movement, and Z axis for rotation.
+    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), deadband);
+    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
+    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
+    
+    xPub.set(xAxis);
+    yPub.set(yAxis);
+    zPub.set(zAxis);
   }
 
   @Override
@@ -294,22 +277,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    // Use the joystick Y axis for forward movement, X axis for lateral
-    // movement, and Z axis for rotation.
-    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), deadband);
-    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
-    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
-    /* 
-    if (yAxis < deadband && yAxis > -deadband) 
-      yAxis = 0;
-    if (xAxis < deadband && xAxis > -deadband) 
-      xAxis = 0;
-    if (zAxis < deadband && zAxis > -deadband) 
-      zAxis = 0;
-    zAxis = -zAxis;
-    xAxis = -xAxis;
-    */
-
+    
     //robotDrive.driveCartesian(yAxis, xAxis, zAxis);
     frontLeftOutput = yAxis + xAxis + zAxis;
     frontRightOutput = yAxis - xAxis - zAxis;
