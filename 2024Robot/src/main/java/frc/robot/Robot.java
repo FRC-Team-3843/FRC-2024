@@ -8,7 +8,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
@@ -25,7 +24,6 @@ import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -47,10 +45,10 @@ public class Robot extends TimedRobot {
   private TalonFX shooterMotor;
 
   private double xAxis = 0, yAxis = 0, zAxis = 0;
-
-  private boolean velocityMode = false, fieldCentric = false;
   
   private double frontLeftOutput, rearLeftOutput, frontRightOutput, rearRightOutput, largestOutput;
+
+  private boolean velocityMode = false, fieldCentric = false;
  
   private boolean[] autoSteps = new boolean[20];
 
@@ -62,182 +60,167 @@ public class Robot extends TimedRobot {
   IntegerPublisher testIntPub;
   StringPublisher autoPub;
 
-  int testInt = 0;
-  double testDouble = 0;
-
-  private static final int controllerChannel = 0;
-  private static final int controller2Channel = 1;
-
-  private static final int pivotMotorIdx = 0;
-  private static final int pivotMotorTimeout = 30;
-
-  private static final int shieldMotorIdx = 0;
-  private static final int shieldMotorTimeout = 30;
-
-  private static final int shootingHighPosition = 8000;
-  private static final int shootingLowPosition = 73000;
-
-  private static final int intakePosition = 160000;
-
-  private static final double[] shieldPos = {0, 30, 60};
-
-  private static final double deadband = 0.12;
-
-  private static final int PIDSlot = 0;
-  private static final double driveMotorP = .0001;
-  private static final double driveMotorI = .000001;
-  private static final double driveMotorKIz = 0;
-  private static final double driveMotorD = 0;
-  private static final double driveMotorFF = 0.000156;
-  private static final double driveMotorMaxOutput = 1;
-  private static final double driveMotorMinOutput = -1;
-  private static final double driveMotorMaxVelocity = 5000; //rpm
-  private static final double driveMotorMaxAcceleration = 8000;
-  private static final double driveMotorMinVelocity = 0;
-  private static final double driveMotorAllowedError = 0;
-
-  private static final double ramp = 0.2;
-
-  private static final double maxWheelVelocity = 5000;
-
-  public static SendableChooser<String> autoChooser;
-
-  private static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6"};
-
-
+  
   @Override
   public void robotInit() {
-    //Initialize Motors
-    frontLeft = new CANSparkMax(1,MotorType.kBrushless);
-    rearLeft = new CANSparkMax(2,MotorType.kBrushless);
-    frontRight = new CANSparkMax(3,MotorType.kBrushless);
-    rearRight = new CANSparkMax(4,MotorType.kBrushless);
-    
-    pivotMotor = new TalonSRX(5);
-    shieldMotor = new TalonSRX(6);
-    feederMotor = new TalonSRX(7);
-    
-    shooterMotor = new TalonFX(8);
-
-
-
-    //Setup Pivot Motor
-    //Set Sensor Feedback Device
-    pivotMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,pivotMotorIdx,pivotMotorTimeout);
-    //Invert Sensor
-    pivotMotor.setSensorPhase(true);
+    //Initialize Motor
+    frontLeft = new CANSparkMax(Constants.frontLeftCanID,MotorType.kBrushless);
     //Invert Motor
-    pivotMotor.setInverted(false);
-    //Set Maximum Output
-    pivotMotor.configPeakOutputForward(1);
-    pivotMotor.configPeakOutputReverse(-1);
-    //Set PID 
-    pivotMotor.config_kF(pivotMotorIdx, 0.02325, pivotMotorTimeout);
-		pivotMotor.config_kP(pivotMotorIdx, 2, pivotMotorTimeout);
-		pivotMotor.config_kI(pivotMotorIdx, 0.0008, pivotMotorTimeout);
-		pivotMotor.config_kD(pivotMotorIdx, 2, pivotMotorTimeout);
-    //Set acceleration and vcruise velocity
-		pivotMotor.configMotionCruiseVelocity(100000, pivotMotorIdx);
-		pivotMotor.configMotionAcceleration(60000, pivotMotorTimeout);
-    //Set Smoothing
-    pivotMotor.configMotionSCurveStrength(0);
-    // Zero the sensor once on robot boot up
-		pivotMotor.setSelectedSensorPosition(0, pivotMotorIdx, pivotMotorTimeout);
-
-    //Setup Shield Motor
-    shieldMotor.configFactoryDefault();
-    //Set Sensor Feedback Device
-    shieldMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,shieldMotorIdx,shieldMotorTimeout);
-    //Invert Sensor
-    shieldMotor.setSensorPhase(false);
-    //Invert Motor
-    shieldMotor.setInverted(false);
-    //Set Maximum Output
-    shieldMotor.configPeakOutputForward(.6);
-    shieldMotor.configPeakOutputReverse(-.6);
-    //Set PID 
-    shieldMotor.config_kF(shieldMotorIdx, 0, shieldMotorTimeout);
-		shieldMotor.config_kP(shieldMotorIdx, 80, shieldMotorTimeout);
-		shieldMotor.config_kI(shieldMotorIdx, 0, shieldMotorTimeout);
-		shieldMotor.config_kD(shieldMotorIdx, 0, shieldMotorTimeout);
-    // Zero the sensor once on robot boot up
-		shieldMotor.setSelectedSensorPosition(30, shieldMotorIdx, shieldMotorTimeout);
-
-    // Setup drive motors
-    //frontRight.restoreFactoryDefaults();
-    frontRight.setInverted(false);
-    frontRight.setOpenLoopRampRate(ramp);
-    frontRightPID = frontRight.getPIDController();
-    frontRightEncoder = frontRight.getEncoder();
-    frontRightPID.setP(driveMotorP);
-    frontRightPID.setI(driveMotorI);
-    frontRightPID.setIZone(driveMotorKIz);
-    frontRightPID.setD(driveMotorD);
-    frontRightPID.setFF(driveMotorFF);
-    frontRightPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
-    frontRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
-    frontRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    frontRightPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
-    frontRightPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
-    
-    rearRight.setInverted(false);
-    rearRight.setOpenLoopRampRate(ramp);
-    rearRightPID = rearRight.getPIDController();
-    rearRightEncoder = rearRight.getEncoder();
-    rearRightPID.setP(driveMotorP);
-    rearRightPID.setI(driveMotorI);
-    rearRightPID.setIZone(driveMotorKIz);
-    rearRightPID.setD(driveMotorD);
-    rearRightPID.setFF(driveMotorFF);
-    rearRightPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
-    rearRightPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
-    rearRightPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    rearRightPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
-    rearRightPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
-
-    frontLeft.setInverted(true);
-    frontLeft.setOpenLoopRampRate(ramp);
+    frontLeft.setInverted(Constants.frontLeftMotorInvert);
+    //Set Ramp
+    frontLeft.setOpenLoopRampRate(Constants.driveRamp);
+    //Initialize PID Controller
     frontLeftPID = frontLeft.getPIDController();
+    //Initialize Encoder
     frontLeftEncoder = frontLeft.getEncoder();
-    frontLeftPID.setP(driveMotorP);
-    frontLeftPID.setI(driveMotorI);
-    frontLeftPID.setIZone(driveMotorKIz);
-    frontLeftPID.setD(driveMotorD);
-    frontLeftPID.setFF(driveMotorFF);
-    frontLeftPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
-    frontLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
-    frontLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    frontLeftPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
-    frontLeftPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
-
-    rearLeft.setInverted(true);
-    rearLeft.setOpenLoopRampRate(ramp);
+    //Set PID, FF, IZ
+    frontLeftPID.setP(Constants.driveP);
+    frontLeftPID.setI(Constants.driveI);
+    frontLeftPID.setD(Constants.driveD);
+    frontLeftPID.setFF(Constants.driveFF);
+    frontLeftPID.setIZone(Constants.driveIZ);
+    //Set Output Range
+    frontLeftPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
+    //Setup Smart Motion
+    frontLeftPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
+    frontLeftPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
+    frontLeftPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
+    frontLeftPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
+    
+    //Initialize Motor
+    rearLeft = new CANSparkMax(Constants.rearLeftCanID,MotorType.kBrushless);
+    //Invert Motor
+    rearLeft.setInverted(Constants.rearLeftMotorInvert);
+    //Set Ramp
+    rearLeft.setOpenLoopRampRate(Constants.driveRamp);
+    //Initialize PID Controller
     rearLeftPID = rearLeft.getPIDController();
+    //Initialize Encoder
     rearLeftEncoder = rearLeft.getEncoder();
-    rearLeftPID.setP(driveMotorP);
-    rearLeftPID.setI(driveMotorI);
-    rearLeftPID.setIZone(driveMotorKIz);
-    rearLeftPID.setD(driveMotorD);
-    rearLeftPID.setFF(driveMotorFF);
-    rearLeftPID.setOutputRange(driveMotorMinOutput, driveMotorMaxOutput);
-    rearLeftPID.setSmartMotionMaxVelocity(driveMotorMaxVelocity, PIDSlot);
-    rearLeftPID.setSmartMotionMaxAccel(driveMotorMaxAcceleration, PIDSlot);
-    rearLeftPID.setSmartMotionAllowedClosedLoopError(driveMotorAllowedError, PIDSlot);
-    rearLeftPID.setSmartMotionMinOutputVelocity(driveMotorMinVelocity, PIDSlot);
+    //Set PID, FF, IZ
+    rearLeftPID.setP(Constants.driveP);
+    rearLeftPID.setI(Constants.driveI);
+    rearLeftPID.setD(Constants.driveD);
+    rearLeftPID.setFF(Constants.driveFF);
+    rearLeftPID.setIZone(Constants.driveIZ);
+    //Set Output Range
+    rearLeftPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
+    //Setup Smart Motion
+    rearLeftPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
+    rearLeftPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
+    rearLeftPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
+    rearLeftPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
+    
+    //Initialize Motor
+    frontRight = new CANSparkMax(Constants.frontRightCanID,MotorType.kBrushless);
+    //Invert Motor
+    frontRight.setInverted(Constants.frontRightMotorInvert);
+    //Set Ramp
+    frontRight.setOpenLoopRampRate(Constants.driveRamp);
+    //Initialize PID
+    frontRightPID = frontRight.getPIDController();
+    //Initialize Encoder
+    frontRightEncoder = frontRight.getEncoder();
+    //Set PID, FF, IZ
+    frontRightPID.setP(Constants.driveP);
+    frontRightPID.setI(Constants.driveI);
+    frontRightPID.setD(Constants.driveD);
+    frontRightPID.setFF(Constants.driveFF);
+    frontRightPID.setIZone(Constants.driveIZ);
+    //Set Output Range
+    frontRightPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
+    //Setup Smart Motion
+    frontRightPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
+    frontRightPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
+    frontRightPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
+    frontRightPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
+    
+    //Initialize Motor
+    rearRight = new CANSparkMax(Constants.rearRightCanID,MotorType.kBrushless);
+    //Invert Motor
+    rearRight.setInverted(Constants.rearRightMotorInvert);
+    //Set Ramp
+    rearRight.setOpenLoopRampRate(Constants.driveRamp);
+    //Initialize PID
+    rearRightPID = rearRight.getPIDController();
+    //Initialize Encoder
+    rearRightEncoder = rearRight.getEncoder();
+    //Set PID, FF, IZ
+    rearRightPID.setP(Constants.driveP);
+    rearRightPID.setI(Constants.driveI);
+    rearRightPID.setD(Constants.driveD);
+    rearRightPID.setFF(Constants.driveFF);
+    rearRightPID.setIZone(Constants.driveIZ);
+    //Set Output Range
+    rearRightPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
+    //Setup Smart Motion
+    rearRightPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
+    rearRightPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
+    rearRightPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
+    rearRightPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
 
-    //Setup feeder and shoorter motors
-    feederMotor.setInverted(false);
-    shooterMotor.setInverted(true);
+    //Initialize Motor
+    pivotMotor = new TalonSRX(Constants.pivotCanId);
+    //Invert Motor
+    pivotMotor.setInverted(Constants.pivotMotorInvert);
+    //Set Sensor Feedback Device
+    pivotMotor.configSelectedFeedbackSensor(Constants.pivotSensor);
+    //Invert Sensor
+    pivotMotor.setSensorPhase(Constants.pivotSensorInvert);
+    //Set Maximum Output
+    pivotMotor.configPeakOutputForward(Constants.pivotMaxForwardOutput);
+    pivotMotor.configPeakOutputReverse(Constants.pivotMaxReverseOutput);
+    //Set PID 
+		pivotMotor.config_kP(0, Constants.pivotP);
+		pivotMotor.config_kI(0, Constants.pivotI);
+		pivotMotor.config_kD(0, Constants.pivotD);
+    pivotMotor.config_kF(0, Constants.pivotFF);
+    //Set acceleration and vcruise velocity
+		pivotMotor.configMotionCruiseVelocity(Constants.pivotMaxVelocity);
+		pivotMotor.configMotionAcceleration(Constants.pivotMaxAcceleration);
+    //Set Smoothing
+    pivotMotor.configMotionSCurveStrength(Constants.pivotCurve);
+    // Zero the sensor once on robot boot up
+		pivotMotor.setSelectedSensorPosition(0);
+
+    //Initialize Motor
+    shieldMotor = new TalonSRX(Constants.shieldCanId);
+    //Invert Motor
+    shieldMotor.setInverted(Constants.shieldMotorInvert);
+    //Set Sensor Feedback Device
+    shieldMotor.configSelectedFeedbackSensor(Constants.shieldSensor);
+    //Invert Sensor
+    shieldMotor.setSensorPhase(Constants.shieldSensorInvert);
+    //Set Maximum Output
+    shieldMotor.configPeakOutputForward(Constants.shieldMaxForwardOutput);
+    shieldMotor.configPeakOutputReverse(Constants.shieldMaxReverseOutput);
+    //Set PID 
+		shieldMotor.config_kP(0, Constants.shieldP);
+		shieldMotor.config_kI(0, Constants.shieldI);
+		shieldMotor.config_kD(0, Constants.shieldD);
+    shieldMotor.config_kF(0, Constants.shieldFF);
+    // Zero the sensor once on robot boot up
+		shieldMotor.setSelectedSensorPosition(Constants.shieldPos[1]);
+
+    //Initialize Motor
+    feederMotor = new TalonSRX(Constants.feederCanID);
+    //Invert Motor
+    feederMotor.setInverted(Constants.feedMotorInvert);
+    
+    //Initialize Motor
+    shooterMotor = new TalonFX(Constants.shooterCanID);
+    //Invert Motor
+    shooterMotor.setInverted(Constants.shooterMotorInvert);
 
     //Setup camera
     CameraServer.startAutomaticCapture();
     
     //Setup Controllers
-    controller1 = new XboxController(controllerChannel);
-    controller2 = new XboxController(controller2Channel);
+    controller1 = new XboxController(Constants.controller1Channel);
+    controller2 = new XboxController(Constants.controller2Channel);
 
     //Add auto options to dashboard
-    SmartDashboard.putStringArray("Auto List", autoList);  
+    SmartDashboard.putStringArray("Auto List", Constants.autoList);  
     
     // Get the default instance of NetworkTables that was created automatically
     // when the robot program starts
@@ -266,9 +249,9 @@ public class Robot extends TimedRobot {
   public void robotPeriodic(){
     // Use the joystick Y axis for forward movement, X axis for lateral
     // movement, and Z axis for rotation.
-    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), (deadband*2));
-    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), deadband);
-    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), deadband);
+    yAxis = MathUtil.applyDeadband(controller1.getLeftY(), (Constants.controllerDeadband*2));
+    xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), Constants.controllerDeadband);
+    zAxis = -MathUtil.applyDeadband(controller1.getRightX(), Constants.controllerDeadband);
     
     xPub.set(xAxis);
     yPub.set(yAxis);
@@ -309,10 +292,10 @@ public class Robot extends TimedRobot {
 
 
     if(velocityMode){
-      frontLeftPID.setReference(maxWheelVelocity * frontLeftOutput, ControlType.kSmartVelocity);
-      frontRightPID.setReference(maxWheelVelocity * frontRightOutput, ControlType.kSmartVelocity);
-      rearLeftPID.setReference(maxWheelVelocity * rearLeftOutput, ControlType.kSmartVelocity);
-      rearRightPID.setReference(maxWheelVelocity * rearRightOutput, ControlType.kSmartVelocity);
+      frontLeftPID.setReference(Constants.driveMaxWheelVelocity * frontLeftOutput, ControlType.kSmartVelocity);
+      frontRightPID.setReference(Constants.driveMaxWheelVelocity * frontRightOutput, ControlType.kSmartVelocity);
+      rearLeftPID.setReference(Constants.driveMaxWheelVelocity * rearLeftOutput, ControlType.kSmartVelocity);
+      rearRightPID.setReference(Constants.driveMaxWheelVelocity * rearRightOutput, ControlType.kSmartVelocity);
     }  
     else{
       frontLeft.set(frontLeftOutput);
@@ -330,37 +313,37 @@ public class Robot extends TimedRobot {
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
-      pivotMotor.set(ControlMode.MotionMagic, intakePosition);
-      if(pivotMotor.getSelectedSensorPosition() > shootingLowPosition)
-        shieldMotor.set(ControlMode.Position, shieldPos[0]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[2]);
+      if(pivotMotor.getSelectedSensorPosition() > Constants.pivotPos[1])
+        shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
     }
     else if ((controller1.getBButton()==true || controller2.getBButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput,1);
-      pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
-      shieldMotor.set(ControlMode.Position, shieldPos[1]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[0]);
+      shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
     }
     else if (controller1.getBButton()==true || controller2.getBButton()==true){
       shooterMotor.set(1);
-      pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
-      shieldMotor.set(ControlMode.Position, shieldPos[1]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[0]);
+      shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
     }
     else if ((controller1.getXButton()==true || controller2.getXButton()==true) && (controller1.getRightBumper()==true || controller2.getRightBumper()==true)){
       shooterMotor.set(1);
       feederMotor.set(ControlMode.PercentOutput, 1);
-      pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
-      shieldMotor.set(ControlMode.Position, shieldPos[2]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[1]);
+      shieldMotor.set(ControlMode.Position, Constants.shieldPos[2]);
      }
     else if (controller1.getXButton()==true || controller2.getXButton()==true){
-      pivotMotor.set(ControlMode.MotionMagic, shootingLowPosition);
-      shieldMotor.set(ControlMode.Position, shieldPos[2]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[1]);
+      shieldMotor.set(ControlMode.Position, Constants.shieldPos[2]);
      }
     else{
       feederMotor.set(ControlMode.PercentOutput,0);
       shooterMotor.set(0);
-      pivotMotor.set(ControlMode.MotionMagic, shootingHighPosition);
-      if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-        shieldMotor.set(ControlMode.Position, shieldPos[1]);
+      pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[0]);
+      if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+        shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
     }
   }
 
@@ -396,9 +379,9 @@ public class Robot extends TimedRobot {
       case "Auto 1":
         //Just shoot
         if(!autoSteps[0]){
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
           shooterMotor.set(1);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -424,8 +407,8 @@ public class Robot extends TimedRobot {
         // Center field double auto
         if(!autoSteps[0]){
           shooterMotor.set(1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -445,9 +428,9 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[2]){
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[0]);
-          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
             leftPosition += -25;
@@ -472,9 +455,9 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[5]){
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+            shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
 
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
           rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -514,8 +497,8 @@ public class Robot extends TimedRobot {
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -535,9 +518,9 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[2]){
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[0]);
-          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
             leftPosition += -15;
@@ -586,9 +569,9 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[6]){
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+            shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -654,8 +637,8 @@ public class Robot extends TimedRobot {
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -675,9 +658,9 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[2]){
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, intakePosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[0]);
-          if((Math.abs(pivotMotor.getSelectedSensorPosition() - intakePosition)) < 5000){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
             autoSteps[2] = true;
             previousEndTime = timer.get();
             leftPosition += -15;
@@ -726,9 +709,9 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[6]){
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          if(pivotMotor.getSelectedSensorPosition() < shootingLowPosition)
-            shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+            shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
@@ -794,8 +777,8 @@ public class Robot extends TimedRobot {
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
@@ -855,8 +838,8 @@ public class Robot extends TimedRobot {
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
-          pivotMotor.set(TalonSRXControlMode.MotionMagic, shootingHighPosition);
-          shieldMotor.set(ControlMode.Position, shieldPos[1]);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           if(timer.get() > previousEndTime + 1){
             autoSteps[0] = true;
             previousEndTime = timer.get();
