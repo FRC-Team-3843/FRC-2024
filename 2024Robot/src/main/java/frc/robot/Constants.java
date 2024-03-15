@@ -9,20 +9,15 @@ public class Constants{
     public static final int controller2Channel = 1;
     public static final double controllerDeadband = 0.12;
 
-    public static final int frontLeftCanID = 1;
-    public static final int rearLeftCanID = 2;
-    public static final int frontRightCanID = 3;
-    public static final int rearRightCanID = 4;
-
-    public static final boolean frontLeftMotorInvert = true;
-    public static final boolean rearLeftMotorInvert = true;
-    public static final boolean frontRightMotorInvert = false;
-    public static final boolean rearRightMotorInvert = false;
+    public static final int driveFrontLeftCanID = 1;
+    public static final int driveRearLeftCanID = 2;
+    public static final int driveFrontRightCanID = 3;
+    public static final int driveRearRightCanID = 4;
 
     public static final int drivePIDSlot = 0;
     public static final double driveP = .0001;
     public static final double driveI = .000001;
-    public static final double driveD = 0;
+    public static final double driveD = .01;
     public static final double driveFF = 0.000156;
     public static final double driveIZ = 0;
     public static final double driveMaxForwardOutput = 1;

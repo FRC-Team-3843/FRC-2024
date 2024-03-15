@@ -5,6 +5,8 @@
 //update
 package frc.robot;
 
+import edu.wpi.first.wpilibj.ADIS16448_IMU;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -51,7 +53,11 @@ public class Robot extends TimedRobot {
 
   private MecanumDrive robotDrive;
 
-  DoublePublisher xPub, yPub, zPub, testDoublePub;
+  private ADIS16448_IMU imu;
+
+  private double yawAngle, yawOffset = 180;
+
+  DoublePublisher xPub, yPub, zPub, yawAnglePub, testDoublePub;
   IntegerPublisher testIntPub;
   StringPublisher autoPub;
 
@@ -59,7 +65,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
 
-    robotDrive = new MecanumDrive(Constants.frontLeftCanID, Constants.frontRightCanID, Constants.rearLeftCanID, Constants.rearRightCanID);
+    robotDrive = new MecanumDrive(Constants.driveFrontLeftCanID, Constants.driveFrontRightCanID, Constants.driveRearLeftCanID, Constants.driveRearRightCanID);
+    robotDrive.invertMotor(Constants.driveFrontLeftCanID);
+    robotDrive.invertMotor(Constants.driveRearLeftCanID);
     robotDrive.setClosedLoop(Constants.driveP, Constants.driveI, Constants.driveD, Constants.driveIZ, Constants.driveFF);
     robotDrive.setSM(Constants.driveMaxVelocity, Constants.driveMaxAcceleration, Constants.driveAllowedError, Constants.driveMinVelocity);
     robotDrive.setMaxWheelVelocity(Constants.driveMaxWheelVelocity);
@@ -128,6 +136,10 @@ public class Robot extends TimedRobot {
     controller1 = new XboxController(Constants.controller1Channel);
     controller2 = new XboxController(Constants.controller2Channel);
 
+    //Setup IMU
+    imu = new ADIS16448_IMU(ADIS16448_IMU.IMUAxis.kZ, SPI.Port.kMXP, ADIS16448_IMU.CalibrationTime._8s);
+    imu.calibrate();
+
     //Add auto options to dashboard
     SmartDashboard.putStringArray("Auto List", Constants.autoList);  
     
@@ -146,8 +158,12 @@ public class Robot extends TimedRobot {
     xPub = table.getDoubleTopic("Joystick X Axis").publish();
     yPub = table.getDoubleTopic("Joystick Y Axis").publish();
     zPub = table.getDoubleTopic("Joystick Z Axis").publish();
+
+    yawAnglePub = table.getDoubleTopic("Yaw Angle").publish();
+    
     testDoublePub = table.getDoubleTopic("Test Double").publish();
     testIntPub = table.getIntegerTopic("Test Int").publish();
+
     autoPub = table.getStringTopic("Auto Selection").publish();
 
     autoPub.set(SmartDashboard.getString("Auto Selector", "None"));    
@@ -161,27 +177,37 @@ public class Robot extends TimedRobot {
     yAxis = MathUtil.applyDeadband(controller1.getLeftY(), (Constants.controllerDeadband*2));
     xAxis = -MathUtil.applyDeadband(controller1.getLeftX(), Constants.controllerDeadband);
     zAxis = -MathUtil.applyDeadband(controller1.getRightX(), Constants.controllerDeadband);
+
+    yawAngle = imu.getGyroAngleZ() - yawOffset;
     
     xPub.set(xAxis);
     yPub.set(yAxis);
     zPub.set(zAxis);
+
+    yawAnglePub.set(yawAngle);
   }
 
   @Override
   public void teleopInit(){
-    //robotDrive = new MecanumDrive(frontLeft::set, rearLeft::set, frontRight::set, rearRight::set);
+    
   }
 
   @Override
   public void teleopPeriodic() {
     
-    robotDrive.drive(yAxis, xAxis, zAxis);
+    robotDrive.drive(yAxis, xAxis, zAxis, yawAngle);
     
     if(controller1.getStartButtonPressed())
       robotDrive.invertVelocityMode();
 
     if(controller1.getBackButtonPressed())
       robotDrive.invertFieldCentric();
+
+    if(controller2.getStartButtonPressed())
+      yawOffset = imu.getGyroAngleZ();
+
+    if(controller2.getBackButtonPressed())
+      imu.calibrate();
 
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
