@@ -23,6 +23,9 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -32,29 +35,21 @@ public class Robot extends TimedRobot {
   
   private XboxController controller1, controller2;
 
-  private final Timer timer = new Timer();
-
-  private CANSparkMax frontLeft, rearLeft, frontRight, rearRight;
-
-  private SparkPIDController frontLeftPID, rearLeftPID, frontRightPID, rearRightPID;
-
-  private RelativeEncoder frontLeftEncoder, rearLeftEncoder, frontRightEncoder, rearRightEncoder;
-
   private TalonSRX pivotMotor, feederMotor, shieldMotor;
 
   private TalonFX shooterMotor;
 
-  private double xAxis = 0, yAxis = 0, zAxis = 0;
-  
-  private double frontLeftOutput, rearLeftOutput, frontRightOutput, rearRightOutput, largestOutput;
-
-  private boolean velocityMode = false, fieldCentric = false;
+  private final Timer timer = new Timer();
  
   private boolean[] autoSteps = new boolean[20];
+
+  private double xAxis, yAxis, zAxis;
 
   private double previousEndTime, leftPosition, rightPosition;
 
   private String autoSelection;
+
+  private MecanumDrive robotDrive;
 
   DoublePublisher xPub, yPub, zPub, testDoublePub;
   IntegerPublisher testIntPub;
@@ -63,102 +58,16 @@ public class Robot extends TimedRobot {
   
   @Override
   public void robotInit() {
-    //Initialize Motor
-    frontLeft = new CANSparkMax(Constants.frontLeftCanID,MotorType.kBrushless);
-    //Invert Motor
-    frontLeft.setInverted(Constants.frontLeftMotorInvert);
-    //Set Ramp
-    frontLeft.setOpenLoopRampRate(Constants.driveRamp);
-    //Initialize PID Controller
-    frontLeftPID = frontLeft.getPIDController();
-    //Initialize Encoder
-    frontLeftEncoder = frontLeft.getEncoder();
-    //Set PID, FF, IZ
-    frontLeftPID.setP(Constants.driveP);
-    frontLeftPID.setI(Constants.driveI);
-    frontLeftPID.setD(Constants.driveD);
-    frontLeftPID.setFF(Constants.driveFF);
-    frontLeftPID.setIZone(Constants.driveIZ);
-    //Set Output Range
-    frontLeftPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
-    //Setup Smart Motion
-    frontLeftPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
-    frontLeftPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
-    frontLeftPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
-    frontLeftPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
-    
-    //Initialize Motor
-    rearLeft = new CANSparkMax(Constants.rearLeftCanID,MotorType.kBrushless);
-    //Invert Motor
-    rearLeft.setInverted(Constants.rearLeftMotorInvert);
-    //Set Ramp
-    rearLeft.setOpenLoopRampRate(Constants.driveRamp);
-    //Initialize PID Controller
-    rearLeftPID = rearLeft.getPIDController();
-    //Initialize Encoder
-    rearLeftEncoder = rearLeft.getEncoder();
-    //Set PID, FF, IZ
-    rearLeftPID.setP(Constants.driveP);
-    rearLeftPID.setI(Constants.driveI);
-    rearLeftPID.setD(Constants.driveD);
-    rearLeftPID.setFF(Constants.driveFF);
-    rearLeftPID.setIZone(Constants.driveIZ);
-    //Set Output Range
-    rearLeftPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
-    //Setup Smart Motion
-    rearLeftPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
-    rearLeftPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
-    rearLeftPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
-    rearLeftPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
-    
-    //Initialize Motor
-    frontRight = new CANSparkMax(Constants.frontRightCanID,MotorType.kBrushless);
-    //Invert Motor
-    frontRight.setInverted(Constants.frontRightMotorInvert);
-    //Set Ramp
-    frontRight.setOpenLoopRampRate(Constants.driveRamp);
-    //Initialize PID
-    frontRightPID = frontRight.getPIDController();
-    //Initialize Encoder
-    frontRightEncoder = frontRight.getEncoder();
-    //Set PID, FF, IZ
-    frontRightPID.setP(Constants.driveP);
-    frontRightPID.setI(Constants.driveI);
-    frontRightPID.setD(Constants.driveD);
-    frontRightPID.setFF(Constants.driveFF);
-    frontRightPID.setIZone(Constants.driveIZ);
-    //Set Output Range
-    frontRightPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
-    //Setup Smart Motion
-    frontRightPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
-    frontRightPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
-    frontRightPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
-    frontRightPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
-    
-    //Initialize Motor
-    rearRight = new CANSparkMax(Constants.rearRightCanID,MotorType.kBrushless);
-    //Invert Motor
-    rearRight.setInverted(Constants.rearRightMotorInvert);
-    //Set Ramp
-    rearRight.setOpenLoopRampRate(Constants.driveRamp);
-    //Initialize PID
-    rearRightPID = rearRight.getPIDController();
-    //Initialize Encoder
-    rearRightEncoder = rearRight.getEncoder();
-    //Set PID, FF, IZ
-    rearRightPID.setP(Constants.driveP);
-    rearRightPID.setI(Constants.driveI);
-    rearRightPID.setD(Constants.driveD);
-    rearRightPID.setFF(Constants.driveFF);
-    rearRightPID.setIZone(Constants.driveIZ);
-    //Set Output Range
-    rearRightPID.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
-    //Setup Smart Motion
-    rearRightPID.setSmartMotionMaxVelocity(Constants.driveMaxVelocity, Constants.drivePIDSlot);
-    rearRightPID.setSmartMotionMaxAccel(Constants.driveMaxAcceleration, Constants.drivePIDSlot);
-    rearRightPID.setSmartMotionAllowedClosedLoopError(Constants.driveAllowedError, Constants.drivePIDSlot);
-    rearRightPID.setSmartMotionMinOutputVelocity(Constants.driveMinVelocity, Constants.drivePIDSlot);
 
+    robotDrive = new MecanumDrive(Constants.frontLeftCanID, Constants.frontRightCanID, Constants.rearLeftCanID, Constants.rearRightCanID);
+    robotDrive.setClosedLoop(Constants.driveP, Constants.driveI, Constants.driveD, Constants.driveIZ, Constants.driveFF);
+    robotDrive.setSM(Constants.driveMaxVelocity, Constants.driveMaxAcceleration, Constants.driveAllowedError, Constants.driveMinVelocity);
+    robotDrive.setMaxWheelVelocity(Constants.driveMaxWheelVelocity);
+    robotDrive.setOutputRange(Constants.driveMaxReverseOutput, Constants.driveMaxForwardOutput);
+    robotDrive.setRamp(Constants.driveRamp);
+    robotDrive.resetEncoder();
+
+    
     //Initialize Motor
     pivotMotor = new TalonSRX(Constants.pivotCanId);
     //Invert Motor
@@ -265,50 +174,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-
-    //robotDrive.driveCartesian(yAxis, xAxis, zAxis);
-    frontLeftOutput = yAxis + xAxis + zAxis;
-    frontRightOutput = yAxis - xAxis - zAxis;
-    rearLeftOutput = yAxis - xAxis + zAxis;
-    rearRightOutput = yAxis + xAxis - zAxis;
-
-    largestOutput = Math.abs(frontLeftOutput);
-    if (largestOutput <  Math.abs(frontRightOutput)){
-      largestOutput = frontRightOutput;
-    }
-    if (largestOutput < Math.abs(rearLeftOutput)){
-      largestOutput = rearLeftOutput;
-    }
-    if (largestOutput < Math.abs(rearRightOutput)) {
-      largestOutput = rearRightOutput;
-    }
-    if (largestOutput > 1) {
-      frontLeftOutput = frontLeftOutput / largestOutput;
-      frontRightOutput = frontRightOutput / largestOutput;
-      rearLeftOutput = rearLeftOutput / largestOutput;
-      rearRightOutput = rearRightOutput / largestOutput;
-    }
-
-
-
-    if(velocityMode){
-      frontLeftPID.setReference(Constants.driveMaxWheelVelocity * frontLeftOutput, ControlType.kSmartVelocity);
-      frontRightPID.setReference(Constants.driveMaxWheelVelocity * frontRightOutput, ControlType.kSmartVelocity);
-      rearLeftPID.setReference(Constants.driveMaxWheelVelocity * rearLeftOutput, ControlType.kSmartVelocity);
-      rearRightPID.setReference(Constants.driveMaxWheelVelocity * rearRightOutput, ControlType.kSmartVelocity);
-    }  
-    else{
-      frontLeft.set(frontLeftOutput);
-      frontRight.set(frontRightOutput);
-      rearLeft.set(rearLeftOutput);
-      rearRight.set(rearRightOutput);
-    }
-      
+    
+    robotDrive.drive(yAxis, xAxis, zAxis);
+    
     if(controller1.getStartButtonPressed())
-      velocityMode = !velocityMode;
+      robotDrive.invertVelocityMode();
 
     if(controller1.getBackButtonPressed())
-      fieldCentric = !fieldCentric;
+      robotDrive.invertFieldCentric();
 
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
@@ -349,6 +222,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit(){
+    /*
       autoSelection = SmartDashboard.getString("Auto Selector", "None");
 
       //Neo Encoder Units = Revs
@@ -367,10 +241,12 @@ public class Robot extends TimedRobot {
       for(int i = 0; i < 20; i++){
         autoSteps[i] = false;
       }
+      */
   }
 
   @Override
   public void autonomousPeriodic(){
+    /*
     switch (autoSelection) {
       case "Do Nothing":
         turnOffAllMotors();
@@ -899,6 +775,7 @@ public class Robot extends TimedRobot {
         turnOffAllMotors();
         break;
     }
+    */
   }
 
   @Override
@@ -913,6 +790,7 @@ public class Robot extends TimedRobot {
 
   public void turnOffAllMotors(){
     //Turn off all motors and do nothing
+    /*
     frontLeft.set(0);
     rearLeft.set(0);
     rearRight.set(0);
@@ -920,6 +798,7 @@ public class Robot extends TimedRobot {
     shooterMotor.set(0);
     feederMotor.set(ControlMode.PercentOutput, 0);
     pivotMotor.set(ControlMode.PercentOutput, 0);
+    */
   }
 
 }
