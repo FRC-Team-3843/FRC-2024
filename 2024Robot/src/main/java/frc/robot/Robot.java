@@ -248,16 +248,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit(){
-    /*
+    
       autoSelection = SmartDashboard.getString("Auto Selector", "None");
 
       //Neo Encoder Units = Revs
       //GR = 10.71 - Wheel Circumference = 28.27in
       //2.63 Inches per Rev
-      frontLeftEncoder.setPosition(0);
-      rearLeftEncoder.setPosition(0);
-      frontRightEncoder.setPosition(0);
-      rearRightEncoder.setPosition(0);
+      robotDrive.resetEncoder();
       leftPosition = 0;
       rightPosition = 0;
 
@@ -267,12 +264,11 @@ public class Robot extends TimedRobot {
       for(int i = 0; i < 20; i++){
         autoSteps[i] = false;
       }
-      */
+      
   }
 
   @Override
   public void autonomousPeriodic(){
-    /*
     switch (autoSelection) {
       case "Do Nothing":
         turnOffAllMotors();
@@ -342,12 +338,9 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[3]){
           shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += 25;
@@ -360,13 +353,11 @@ public class Robot extends TimedRobot {
           pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
           if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
             shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
-
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+      
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[5] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -432,12 +423,10 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[3]){
           shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += -30;
@@ -445,12 +434,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[4]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition (leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
             leftPosition += -20;
@@ -458,12 +445,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[5]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[5] = true;
             previousEndTime = timer.get();
             leftPosition += 20;
@@ -476,12 +461,10 @@ public class Robot extends TimedRobot {
             shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[6] = true;
             previousEndTime = timer.get();
             leftPosition += 30;
@@ -489,12 +472,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[7]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[7] = true;
             previousEndTime = timer.get();
             leftPosition += 15;
@@ -502,12 +483,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[8]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[8] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -572,12 +551,10 @@ public class Robot extends TimedRobot {
         else if(!autoSteps[3]){
           shooterMotor.set(-0.8);
           feederMotor.set(ControlMode.PercentOutput, -0.6);
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -585,12 +562,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[4]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
             leftPosition += -20;
@@ -598,12 +573,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[5]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID)- rightPosition)) < 0.5)){
             autoSteps[5] = true;
             previousEndTime = timer.get();
             leftPosition += 20;
@@ -616,12 +589,10 @@ public class Robot extends TimedRobot {
             shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[6] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -629,12 +600,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[7]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[7] = true;
             previousEndTime = timer.get();
             leftPosition += 15;
@@ -642,12 +611,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[8]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID)- rightPosition)) < 0.5)){
             autoSteps[8] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -708,12 +675,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[3]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += -15;
@@ -721,12 +686,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[4]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -769,12 +732,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[3]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += -15;
@@ -782,12 +743,10 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[4]){
-          frontLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearLeftPID.setReference(leftPosition, CANSparkMax.ControlType.kSmartMotion);
-          frontRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          rearRightPID.setReference(rightPosition, CANSparkMax.ControlType.kSmartMotion);
-          if(((Math.abs(frontLeftEncoder.getPosition() - leftPosition)) < 0.5) &&  
-          ((Math.abs(frontRightEncoder.getPosition() - rightPosition)) < 0.5)){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[4] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -801,7 +760,6 @@ public class Robot extends TimedRobot {
         turnOffAllMotors();
         break;
     }
-    */
   }
 
   @Override

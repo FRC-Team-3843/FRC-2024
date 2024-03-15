@@ -310,6 +310,31 @@ public class MecanumDrive {
         setRearRightMotorVelocity(rearRight);
     }
 
+    public void setMotorPosition(double frontLeft, double frontRight, double rearLeft, double rearRight){
+        setFrontLeftMotorPosition(frontLeft);
+        setFrontRightMotorPosition(frontRight);
+        setRearLeftMotorPosition(rearLeft);
+        setRearRightMotorPosition(rearRight);
+    }
+
+    public double getPosition(int canID){
+        return getProperty(canID, CANSparkMax::getEncoder).getPosition();
+    }
+
+    public void setFrontLeftMotorPosition (double position){
+        getProperty(frontLeftCanID, motor -> motor.getPIDController().setReference(position, ControlType.kSmartMotion));
+    }
+
+    public void setFrontRightMotorPosition (double position){
+        getProperty(frontRightCanID, motor -> motor.getPIDController().setReference(position, ControlType.kSmartMotion));
+    }
+    public void setRearLeftMotorPosition (double position){
+        getProperty(rearLeftCanID, motor -> motor.getPIDController().setReference(position, ControlType.kSmartMotion));
+    }
+    public void setRearRightMotorPosition (double position){
+        getProperty(rearRightCanID, motor -> motor.getPIDController().setReference(position, ControlType.kSmartMotion));
+    }
+
     public void setFrontLeftMotorVOutput (double vOutput){
         getProperty(frontLeftCanID, Function.identity()).set(vOutput);
     }
