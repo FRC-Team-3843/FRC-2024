@@ -15,15 +15,17 @@ public class Constants{
     public static final int driveRearRightCanID = 4;
 
     public static final int drivePIDSlot = 0;
-    public static final double driveP = .0001;
+    public static final double driveP = .0002;
     public static final double driveI = .000001;
     public static final double driveD = 0;
     public static final double driveFF = 0.000156;
     public static final double driveIZ = 0;
     public static final double driveMaxForwardOutput = 1;
     public static final double driveMaxReverseOutput = -1;
-    public static final double driveMaxVelocity = 5000; //rpm
-    public static final double driveMaxAcceleration = 8000;
+    public static final double driveMaxVelocity = 1300; //rpm
+    //teleop=5000
+    public static final double driveMaxAcceleration = 4000;
+    //teleop=8000
     public static final double driveMinVelocity = 0;
     public static final double driveAllowedError = 0;
     public static final double driveRamp = 0.2;
@@ -65,5 +67,5 @@ public class Constants{
 
     public static SendableChooser<String> autoChooser;
 
-    public static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6"};
+    public static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6", "Auto 7", "Auto 8"};
 }

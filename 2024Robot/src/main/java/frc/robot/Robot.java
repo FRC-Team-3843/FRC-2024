@@ -29,6 +29,8 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.lang.model.util.ElementScanner14;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -345,7 +347,7 @@ public class Robot extends TimedRobot {
             rightPosition += 25;
           }
         }
-        else if(!autoSteps[5]){
+        else if(!autoSteps[4]){
           shooterMotor.set(0);
           feederMotor.set(ControlMode.PercentOutput, 0);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
@@ -356,6 +358,15 @@ public class Robot extends TimedRobot {
           
           if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
           ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[5]){
+          shooterMotor.set(1);
+          if(timer.get() > previousEndTime + 1){
             autoSteps[5] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
@@ -363,18 +374,9 @@ public class Robot extends TimedRobot {
           }
         }
         else if(!autoSteps[6]){
-          shooterMotor.set(1);
-          if(timer.get() > previousEndTime + 1){
-            autoSteps[6] = true;
-            previousEndTime = timer.get();
-            leftPosition += 0;
-            rightPosition += 0;
-          }
-        }
-        else if(!autoSteps[7]){
           feederMotor.set(ControlMode.PercentOutput, 1);
           if(timer.get() > previousEndTime + 0.5){
-            autoSteps[7] = true;
+            autoSteps[6] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
             rightPosition += 0;
@@ -754,7 +756,399 @@ public class Robot extends TimedRobot {
         else
           turnOffAllMotors();
         break;
-      default:
+
+      case "Auto 7":
+        if(!autoSteps[0]){
+          shooterMotor.set(1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[1]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -25;
+            rightPosition += -25;
+          }
+        }
+        else if(!autoSteps[3]){
+          shooterMotor.set(-0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += 25;
+            rightPosition += 25;
+          }
+        }
+         else if(!autoSteps[4]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+            shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+      
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[5]){
+          shooterMotor.set(1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[5] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[6]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[6] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+         else if(!autoSteps[7]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          //pivotMotor = 2
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[0])) < 5000){
+            autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += -22;
+            rightPosition += -22;
+          }
+        }
+         else if(!autoSteps[8]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[8] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += -40;
+          }
+        }
+          else if(!autoSteps[10]){
+          robotDrive.setMotorPosition (leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)) {
+            autoSteps[10] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[9]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+        if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
+            autoSteps[9] = true;
+            previousEndTime = timer.get();
+            leftPosition += -10;
+            rightPosition += -10;
+          }
+        }
+        else if(!autoSteps[11]){
+          shooterMotor.set(-0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[11] = true;
+            previousEndTime = timer.get();
+            leftPosition += 10;
+            rightPosition += 10;
+          }
+        }
+        else if(!autoSteps[12]){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[12] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 40;
+          }
+        }
+       else if(!autoSteps[13]){
+        robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+        if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[13] = true;
+            previousEndTime = timer.get();
+            leftPosition += 22;
+            rightPosition += 22;
+          }
+        }
+        else if(!autoSteps[14]){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[14] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[15]){
+          shooterMotor.set(1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[15] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[16]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[16] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else
+          turnOffAllMotors();
+        break;
+        
+      case "Auto 8":
+        if(!autoSteps[0]){
+          shooterMotor.set(1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[1]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -25;
+            rightPosition += -25;
+          }
+        }
+        else if(!autoSteps[3]){
+          shooterMotor.set(-0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += 25;
+            rightPosition += 25;
+          }
+        }
+         else if(!autoSteps[4]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
+            shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+      
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[4] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[5]){
+          shooterMotor.set(1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[5] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[6]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[6] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+         else if(!autoSteps[7]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          //pivotMotor = 2
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[0]);
+          if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[0])) < 5000){
+            autoSteps[7] = true;
+            previousEndTime = timer.get();
+            leftPosition += -22;
+            rightPosition += -22;
+          }
+        }
+         else if(!autoSteps[8]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[8] = true;
+            previousEndTime = timer.get();
+            rightPosition += 0;
+            leftPosition += -40;
+          }
+        }
+          else if(!autoSteps[10]){
+          robotDrive.setMotorPosition (leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)) {
+            autoSteps[10] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[9]){
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[2]);
+        if((Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[2])) < 5000){
+            autoSteps[9] = true;
+            previousEndTime = timer.get();
+            leftPosition += -10;
+            rightPosition += -10;
+          }
+        }
+        else if(!autoSteps[11]){
+          shooterMotor.set(-0.8);
+          feederMotor.set(ControlMode.PercentOutput, -0.6);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[11] = true;
+            previousEndTime = timer.get();
+            leftPosition += 10;
+            rightPosition += 10;
+          }
+        }
+        else if(!autoSteps[12]){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[12] = true;
+            previousEndTime = timer.get();
+            rightPosition += 0;
+            leftPosition += 40;
+          }
+        }
+       else if(!autoSteps[13]){
+        robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+        if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[13] = true;
+            previousEndTime = timer.get();
+            leftPosition += 22;
+            rightPosition += 22;
+          }
+        }
+        else if(!autoSteps[14]){
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[14] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[15]){
+          shooterMotor.set(1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[15] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[16]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.3){
+            autoSteps[16] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else
+          turnOffAllMotors();
+        break;
+         
+        
+        default:
         turnOffAllMotors();
         break;
     }
