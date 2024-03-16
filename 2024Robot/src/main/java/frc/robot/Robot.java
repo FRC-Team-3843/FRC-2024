@@ -206,9 +206,6 @@ public class Robot extends TimedRobot {
     if(controller2.getStartButtonPressed())
       yawOffset = imu.getGyroAngleZ();
 
-    if(controller2.getBackButtonPressed())
-      imu.calibrate();
-
     if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);

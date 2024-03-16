@@ -17,7 +17,7 @@ public class Constants{
     public static final int drivePIDSlot = 0;
     public static final double driveP = .0001;
     public static final double driveI = .000001;
-    public static final double driveD = .01;
+    public static final double driveD = 0;
     public static final double driveFF = 0.000156;
     public static final double driveIZ = 0;
     public static final double driveMaxForwardOutput = 1;
