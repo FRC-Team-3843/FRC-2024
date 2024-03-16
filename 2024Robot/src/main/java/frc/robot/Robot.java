@@ -771,15 +771,10 @@ public class Robot extends TimedRobot {
 
   public void turnOffAllMotors(){
     //Turn off all motors and do nothing
-    /*
-    frontLeft.set(0);
-    rearLeft.set(0);
-    rearRight.set(0);
-    frontRight.set(0);
+    robotDrive.stopMotor();
     shooterMotor.set(0);
     feederMotor.set(ControlMode.PercentOutput, 0);
     pivotMotor.set(ControlMode.PercentOutput, 0);
-    */
   }
 
 }
