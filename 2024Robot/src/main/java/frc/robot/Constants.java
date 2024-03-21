@@ -57,7 +57,8 @@ public class Constants{
     public static final double shieldFF = 0; 
     public static final double shieldMaxForwardOutput = 0.4;
     public static final double shieldMaxReverseOutput = -0.4;
-    public static final double[] shieldPos = {18506, 0, -20976};
+    public static final double[] shieldPos = {18506, 0, -19000};
+    //-20976
 
     public static final int feederCanID = 7;
     public static final boolean feedMotorInvert = false;
@@ -67,5 +68,6 @@ public class Constants{
 
     public static SendableChooser<String> autoChooser;
 
-    public static final String[] autoList = {"Do Nothing", "Auto 1", "Auto 2", "Auto 3", "Auto 4", "Auto 5", "Auto 6", "Auto 7", "Auto 8"};
+    public static final String[] autoList = {"Do Nothing Center", "Do Nothing Right", "Do Nothing Left" , "Auto 1 Center", "Auto 1 Right" , "Auto 1 Left"
+    , "Auto 2 Center", "Auto 2 Right", "Auto 2 Left", "Auto 3 Center" , "Auto 3 Right", "Auto 3 Left", "Auto 4 Left", "Auto 4 Right"};
 }

@@ -58,7 +58,7 @@ public class Robot extends TimedRobot {
 
   private ADIS16448_IMU imu;
 
-  private double yawAngle, yawOffset = 180;
+  private double yawAngle, yawOffset = 0;
 
   DoublePublisher xPub, yPub, zPub, yawAnglePub, testDoublePub;
   IntegerPublisher testIntPub;
@@ -200,7 +200,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     
     robotDrive.drive(yAxis, xAxis, zAxis, yawAngle);
-    
+
     if(controller1.getStartButtonPressed())
       robotDrive.invertVelocityMode();
 
@@ -210,7 +210,11 @@ public class Robot extends TimedRobot {
     if(controller2.getStartButtonPressed())
       yawOffset = imu.getGyroAngleZ();
 
-    if (controller1.getAButton()==true || controller2.getAButton()==true){  
+    if (controller2.getLeftBumper()==true) {
+      pivotMotor.set(ControlMode.PercentOutput, 0);
+      pivotMotor.setSelectedSensorPosition(0);
+     }
+    else if (controller1.getAButton()==true || controller2.getAButton()==true){  
       shooterMotor.set(-0.8);
       feederMotor.set(ControlMode.PercentOutput, -0.6);
       pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[2]);
@@ -270,17 +274,68 @@ public class Robot extends TimedRobot {
       for(int i = 0; i < 20; i++){
         autoSteps[i] = false;
       }
-      
+
+      double speakerAngle = 63.43;
+
+      switch(autoSelection) {
+        case "Do Nothing Center":
+        //to do: figure out angle for
+        break;
+        case "Do Nothing Right":
+        yawOffset = imu.getGyroAngleZ() + speakerAngle;
+        break;
+        case "Do Nothing Left":
+        yawOffset = imu.getGyroAngleZ() - speakerAngle;
+        break;
+        case "Auto 1 Left":
+        yawOffset = imu.getGyroAngleZ() - speakerAngle;
+        break;
+        case "Auto 1 Center":
+        yawOffset = imu.getGyroAngleZ();
+        break;
+        case "Auto 1 Right":
+        yawOffset = imu.getGyroAngleZ() + speakerAngle;
+        break;
+        case "Auto 2 Center":
+        yawOffset = imu.getGyroAngleZ();
+        break;
+        case "Auto 2 Right":
+        yawOffset = imu.getGyroAngleZ() + speakerAngle;
+        break;
+        case "Auto 2 Left":
+        yawOffset = imu.getGyroAngleZ() - speakerAngle;
+        break;
+        case "Auto 3 Center":
+        yawOffset = imu.getGyroAngleZ();
+        break;
+        case "Auto 3 Right":
+        yawOffset = imu.getGyroAngleZ() + speakerAngle;
+        break;
+        case "Auto 3 Left":
+        yawOffset = imu.getGyroAngleZ() - speakerAngle;
+        break;
+        case "Auto 4 Left":
+        yawOffset = imu.getGyroAngleZ();
+        break;
+        case "Auto 4 Right":
+        yawOffset = imu.getGyroAngleZ();
+        break;
+      }
+
   }
 
   @Override
   public void autonomousPeriodic(){
     switch (autoSelection) {
-      case "Do Nothing":
+      case "Do Nothing Center":
+      case "Do Nothing Left":
+      case "Do Nothing Right":
         turnOffAllMotors();
       break;
       
-      case "Auto 1":
+      case "Auto 1 Center":
+      case "Auto 1 Right":
+      case "Auto 1 Left":
         //Just shoot
         if(!autoSteps[0]){
           pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
@@ -307,7 +362,7 @@ public class Robot extends TimedRobot {
           
         break;
       
-        case "Auto 2" :
+        case "Auto 2 Center" :
         // Center field double auto
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -392,7 +447,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
       
-        case "Auto 3":
+        case "Auto 2 Right":
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -435,7 +490,7 @@ public class Robot extends TimedRobot {
           ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[3] = true;
             previousEndTime = timer.get();
-            leftPosition += -30;
+            leftPosition += -40;
             rightPosition += 0;
           }
         }
@@ -473,7 +528,7 @@ public class Robot extends TimedRobot {
           ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[6] = true;
             previousEndTime = timer.get();
-            leftPosition += 30;
+            leftPosition += 45;
             rightPosition += 0;
           }
         }
@@ -484,8 +539,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[7] = true;
             previousEndTime = timer.get();
-            leftPosition += 15;
-            rightPosition += 15;
+            leftPosition += 20;
+            rightPosition += 20;
           }
         }
         else if(!autoSteps[8]){
@@ -520,7 +575,7 @@ public class Robot extends TimedRobot {
         else
           turnOffAllMotors();
         break;
-      case "Auto 4":
+      case "Auto 2 Left":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -564,7 +619,7 @@ public class Robot extends TimedRobot {
             autoSteps[3] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
-            rightPosition += -30;
+            rightPosition += -40;
           }
         }
         else if(!autoSteps[4]){
@@ -602,7 +657,7 @@ public class Robot extends TimedRobot {
             autoSteps[6] = true;
             previousEndTime = timer.get();
             leftPosition += 0;
-            rightPosition += 30;
+            rightPosition += 45;
           }
         }
         else if(!autoSteps[7]){
@@ -612,8 +667,8 @@ public class Robot extends TimedRobot {
           ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
             autoSteps[7] = true;
             previousEndTime = timer.get();
-            leftPosition += 15;
-            rightPosition += 15;
+            leftPosition += 20;
+            rightPosition += 20;
           }
         }
         else if(!autoSteps[8]){
@@ -648,7 +703,55 @@ public class Robot extends TimedRobot {
         else
           turnOffAllMotors();
         break;
-      case "Auto 5":
+
+      case "Auto 3 Center":
+        if(!autoSteps[0]){
+          shooterMotor.set(1);
+          pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+          if(timer.get() > previousEndTime + 1){
+            autoSteps[0] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[1]){
+          feederMotor.set(ControlMode.PercentOutput, 1);
+          if(timer.get() > previousEndTime + 0.5){
+            autoSteps[1] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else if(!autoSteps[2]){
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          shooterMotor.set(0);
+          if(timer.get() > previousEndTime + 10){
+            autoSteps[2] = true;
+            previousEndTime = timer.get();
+            leftPosition += -25;
+            rightPosition += -25;
+          }
+        }
+        else if(!autoSteps[3]){
+          shooterMotor.set(0);
+          feederMotor.set(ControlMode.PercentOutput, 0);
+          robotDrive.setMotorPosition(leftPosition, rightPosition, leftPosition, rightPosition);
+          if(((Math.abs(robotDrive.getPosition(Constants.driveFrontLeftCanID) - leftPosition)) < 0.5) &&  
+          ((Math.abs(robotDrive.getPosition(Constants.driveFrontRightCanID) - rightPosition)) < 0.5)){
+            autoSteps[3] = true;
+            previousEndTime = timer.get();
+            leftPosition += 0;
+            rightPosition += 0;
+          }
+        }
+        else
+          turnOffAllMotors();
+        break;
+
+      case "Auto 3 Right":
         //Right Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -705,7 +808,7 @@ public class Robot extends TimedRobot {
         else
           turnOffAllMotors();
         break;
-      case "Auto 6":
+      case "Auto 3 Left":
         //Left Side Facing Speaker from midfield
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -763,7 +866,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
 
-      case "Auto 7":
+      case "Auto 4 Right":
       //shoot, retrieve middle, shoot, retrieve left from amp, shoot
         if(!autoSteps[0]){
           shooterMotor.set(1);
@@ -959,7 +1062,7 @@ public class Robot extends TimedRobot {
           turnOffAllMotors();
         break;
         
-      case "Auto 8":
+      case "Auto 4 Left":
       //shoot, retrieve middle, shoot, retrieve right from amp, shoot
         if(!autoSteps[0]){
           shooterMotor.set(1);
