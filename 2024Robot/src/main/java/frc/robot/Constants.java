@@ -43,7 +43,7 @@ public class Constants{
     public static final double pivotMaxForwardOutput = 1;
     public static final double pivotMaxReverseOutput = -1;
     public static final double pivotMaxVelocity = 100000; 
-    public static final double pivotMaxAcceleration = 60000;
+    public static final double pivotMaxAcceleration = 50000;
     public static final int pivotCurve = 0;
     public static final int[] pivotPos = {8000,73000,160000};
 
@@ -51,13 +51,13 @@ public class Constants{
     public static final boolean shieldMotorInvert = false;
     public static final FeedbackDevice shieldSensor = FeedbackDevice.QuadEncoder;
     public static final boolean shieldSensorInvert = false;
-    public static final double shieldP = 80;
+    public static final double shieldP = 0.5;
     public static final double shieldI = 0;
     public static final double shieldD = 0;
     public static final double shieldFF = 0; 
-    public static final double shieldMaxForwardOutput = 0.6;
-    public static final double shieldMaxReverseOutput = -0.6;
-    public static final double[] shieldPos = {0, 30, 60};
+    public static final double shieldMaxForwardOutput = 0.4;
+    public static final double shieldMaxReverseOutput = -0.4;
+    public static final double[] shieldPos = {18506, 0, -20976};
 
     public static final int feederCanID = 7;
     public static final boolean feedMotorInvert = false;

@@ -121,6 +121,7 @@ public class Robot extends TimedRobot {
     shieldMotor.config_kF(0, Constants.shieldFF);
     // Zero the sensor once on robot boot up
 		shieldMotor.setSelectedSensorPosition(Constants.shieldPos[1]);
+    //position units = -2104
 
     //Initialize Motor
     feederMotor = new TalonSRX(Constants.feederCanID);
@@ -243,6 +244,11 @@ public class Robot extends TimedRobot {
       pivotMotor.set(ControlMode.MotionMagic, Constants.pivotPos[0]);
       if(pivotMotor.getSelectedSensorPosition() < Constants.pivotPos[1])
         shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+      if(shieldMotor.getSelectedSensorPosition() < 100){
+        if(Math.abs(pivotMotor.getSelectedSensorPosition() - Constants.pivotPos[1]) < 5000)
+          shieldMotor.set(ControlMode.Position, Constants.shieldPos[1]);
+      }
+
     }
   }
 
@@ -758,6 +764,7 @@ public class Robot extends TimedRobot {
         break;
 
       case "Auto 7":
+      //shoot, retrieve middle, shoot, retrieve left from amp, shoot
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
@@ -953,6 +960,7 @@ public class Robot extends TimedRobot {
         break;
         
       case "Auto 8":
+      //shoot, retrieve middle, shoot, retrieve right from amp, shoot
         if(!autoSteps[0]){
           shooterMotor.set(1);
           pivotMotor.set(TalonSRXControlMode.MotionMagic, Constants.pivotPos[0]);
