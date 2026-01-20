@@ -1,0 +1,28 @@
+# Build outputs
+build/
+bin/
+out/
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE settings
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# WPILib simulation files
+simgui.json
+simgui-window.json
+networktables.json
+*.log
+
+# PathPlanner - exclude generated trajectories (these rebuild on deploy)
+**/generatedJSON/
