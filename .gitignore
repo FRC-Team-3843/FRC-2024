@@ -26,3 +26,12 @@ networktables.json
 
 # PathPlanner - exclude generated trajectories (these rebuild on deploy)
 **/generatedJSON/
+
+# Vendor-specific logs
+**/logs/
+**/deploy/
+
+# CTRE Phoenix
+.device-details
+
+!.vscode/extensions.json
