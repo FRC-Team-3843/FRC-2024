@@ -69,16 +69,19 @@ public class RobotContainer {
         .a()
         .or(m_operatorController.a())
         .whileTrue(
-            Commands.parallel(
-                    m_shooterSubsystem.spinReverseCommand(),
-                    m_shooterSubsystem.feedReverseCommand(),
-                    m_pivotSubsystem.moveToIntakeCommand())
-                .andThen(
-                    Commands.waitUntil(
-                        () ->
-                            m_pivotSubsystem.getPosition()
-                                > Constants.PivotConstants.SHOOTING_LOW_POS))
-                .andThen(m_shieldSubsystem.moveDownCommand()));
+            Commands.run(
+                () -> {
+                  m_shooterSubsystem.spinReverse();
+                  m_shooterSubsystem.feedReverse();
+                  m_pivotSubsystem.moveToIntake();
+                  if (m_pivotSubsystem.getPosition()
+                      > Constants.PivotConstants.SHOOTING_LOW_POS) {
+                    m_shieldSubsystem.moveDown();
+                  }
+                },
+                m_shooterSubsystem,
+                m_pivotSubsystem,
+                m_shieldSubsystem));
 
     // B button (without RB) - High shot prep
     // (pivot high, shooter spin, shield mid)

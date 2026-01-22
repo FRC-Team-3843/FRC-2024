@@ -188,14 +188,14 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
-   * Drives to a specific position using SmartMotion.
+   * Drives to a specific absolute position using SmartMotion.
    *
-   * @param leftDelta Change in left side position (encoder revolutions)
-   * @param rightDelta Change in right side position (encoder revolutions)
+   * @param leftTarget Absolute target position for left side (encoder revolutions)
+   * @param rightTarget Absolute target position for right side (encoder revolutions)
    */
-  public void driveToPosition(double leftDelta, double rightDelta) {
-    m_leftTargetPosition += leftDelta;
-    m_rightTargetPosition += rightDelta;
+  public void driveToPosition(double leftTarget, double rightTarget) {
+    m_leftTargetPosition = leftTarget;
+    m_rightTargetPosition = rightTarget;
 
     m_frontLeftPID.setSetpoint(
         m_leftTargetPosition, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0);
@@ -252,15 +252,15 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
-   * Returns a command to drive to a specific position.
+   * Returns a command to drive to a specific absolute position.
    *
-   * @param leftDelta Change in left side position
-   * @param rightDelta Change in right side position
+   * @param leftTarget Absolute target position for left side
+   * @param rightTarget Absolute target position for right side
    * @return Command that drives to position and waits until arrival
    */
-  public Command driveToPositionCommand(double leftDelta, double rightDelta) {
+  public Command driveToPositionCommand(double leftTarget, double rightTarget) {
     return Commands.sequence(
-            runOnce(() -> driveToPosition(leftDelta, rightDelta)),
+            runOnce(() -> driveToPosition(leftTarget, rightTarget)),
             Commands.waitUntil(() -> atTargetPosition()))
         .withName("Drive to Position");
   }
