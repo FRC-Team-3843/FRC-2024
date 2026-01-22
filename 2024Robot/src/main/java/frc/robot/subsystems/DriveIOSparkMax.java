@@ -71,6 +71,15 @@ public class DriveIOSparkMax implements DriveIO {
     config.inverted(inverted);
     config.openLoopRampRate(DriveConstants.RAMP_RATE); // How fast we accelerate
 
+    // OPTIMIZATION: Slow down CAN status signals to save bandwidth and CPU
+    // We only need fast updates for position and velocity. 
+    // Bus voltage and temperature can be much slower.
+    config.signals
+        .primaryEncoderPositionPeriodMs(20)
+        .primaryEncoderVelocityPeriodMs(20)
+        .busVoltagePeriodMs(100)
+        .motorTemperaturePeriodMs(500);
+
     // PID Settings (P, I, D) for the internal controller
     config.closedLoop
         .p(DriveConstants.MOTOR_P)

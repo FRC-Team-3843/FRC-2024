@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -38,8 +39,18 @@ public class ShooterSubsystem extends SubsystemBase {
             : InvertedValue.CounterClockwise_Positive;
     m_shooterMotor.getConfigurator().apply(shooterConfig);
 
+    // OPTIMIZATION: Automatically throttle down CAN signals we aren't using (feedback, etc.)
+    m_shooterMotor.optimizeBusUtilization();
+
     // Configure feeder motor (TalonSRX/Phoenix5)
+    m_feederMotor.configFactoryDefault();
     m_feederMotor.setInverted(ShooterConstants.FEEDER_INVERTED);
+
+    // OPTIMIZATION: Slow down all status frames for the feeder since we don't need feedback
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 255);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 255);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
   }
 
   /**

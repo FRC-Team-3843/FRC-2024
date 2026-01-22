@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -24,6 +25,11 @@ public class PivotSubsystem extends SubsystemBase {
     }
 
     m_pivotMotor = new TalonSRX(PivotConstants.MOTOR_ID);
+
+    // OPTIMIZATION: Slow down CAN status frames for data we don't need frequently
+    m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
+    m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 100);
 
     // Configure sensor feedback device
     m_pivotMotor.configSelectedFeedbackSensor(
