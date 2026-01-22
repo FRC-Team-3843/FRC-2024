@@ -22,6 +22,23 @@ public final class Constants {
   }
 
   public static class DriveConstants {
+    // ==========================================
+    // ROBOT HARDWARE CONFIGURATION
+    // Change these lines to switch between the Practice Bot and Comp Bot!
+    // ==========================================
+    public enum DrivetrainHardwareType {
+      SPARK_MAX_NEO, // The 2024 Competition Robot (Brushless)
+      TALON_SRX_CIM  // The Practice Robot (Brushed / Old Motors)
+    }
+
+    // CHANGE THIS to switch bots:
+    public static final DrivetrainHardwareType CURRENT_DRIVETRAIN_TYPE = DrivetrainHardwareType.TALON_SRX_CIM;
+    
+    // CHANGE THIS if you add/remove encoders (sensors) on the practice bot:
+    // false = No sensors (Auto will skip move commands, Manual driving works)
+    // true  = Sensors active (Auto works normally)
+    public static final boolean HAS_DRIVE_ENCODERS = false;
+
     // Motor CAN IDs
     public static final int FRONT_LEFT_MOTOR_ID = 1;
     public static final int REAR_LEFT_MOTOR_ID = 2;

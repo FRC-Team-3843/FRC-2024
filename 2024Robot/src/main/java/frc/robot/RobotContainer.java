@@ -142,6 +142,15 @@ public class RobotContainer {
                 m_shooterSubsystem.feedCommand(),
                 m_pivotSubsystem.moveToLowCommand(),
                 m_shieldSubsystem.moveUpCommand()));
+
+    // Start button - Toggle velocity mode
+    m_driverController.start().onTrue(m_driveSubsystem.toggleVelocityModeCommand());
+
+    // Back button - Toggle field centric mode
+    m_driverController.back().onTrue(m_driveSubsystem.toggleFieldCentricCommand());
+
+    // Y button - Reset gyro heading
+    m_driverController.y().onTrue(m_driveSubsystem.resetGyroCommand());
   }
 
   /** Sets default commands for subsystems. */
