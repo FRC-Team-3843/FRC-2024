@@ -27,7 +27,7 @@ public class PivotSubsystem extends SubsystemBase {
     m_pivotMotor = new TalonSRX(PivotConstants.MOTOR_ID);
 
     // OPTIMIZATION: Slow down CAN status frames for data we don't need frequently
-    m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 50); // 50ms (Stall Detection)
     m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
     m_pivotMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 100);
 

@@ -31,7 +31,7 @@ public class ShieldSubsystem extends SubsystemBase {
     m_shieldMotor.configFactoryDefault();
 
     // OPTIMIZATION: Slow down CAN status frames for data we don't need frequently
-    m_shieldMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    m_shieldMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 50); // 50ms (Stall Detection)
     m_shieldMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
     m_shieldMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 100);
 

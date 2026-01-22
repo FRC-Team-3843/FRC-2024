@@ -47,9 +47,9 @@ public class ShooterSubsystem extends SubsystemBase {
     m_feederMotor.setInverted(ShooterConstants.FEEDER_INVERTED);
 
     // OPTIMIZATION: Slow down all status frames for the feeder since we don't need feedback
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 255);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20); // 20ms (Matches loop)
     m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 255);
-    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 50); // 50ms (Jam Detection)
     m_feederMotor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
   }
 

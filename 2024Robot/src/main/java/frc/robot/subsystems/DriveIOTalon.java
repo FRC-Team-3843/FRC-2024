@@ -32,9 +32,9 @@ public class DriveIOTalon implements DriveIO {
     motor.configOpenloopRamp(DriveConstants.RAMP_RATE);
 
     // OPTIMIZATION: Slow down all status frames by default to save CAN bandwidth
-    motor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+    motor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 10); // Default 10ms (Critical for control)
     motor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 255);
-    motor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 255);
+    motor.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 50); // 50ms (20Hz) for Current/Volt monitoring
     motor.setStatusFramePeriod(StatusFrameEnhanced.Status_6_Misc, 255);
     motor.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 255);
     motor.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 255);
