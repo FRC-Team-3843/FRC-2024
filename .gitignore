@@ -137,7 +137,7 @@ $RECYCLE.BIN/
 
 ### Gradle ###
 .gradle
-/build/
+build/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -180,7 +180,7 @@ logs/
 ctre_sim/
 
 # clangd
-/.cache
+.cache/
 compile_commands.json
 
 # Eclipse generated file for annotation processors
