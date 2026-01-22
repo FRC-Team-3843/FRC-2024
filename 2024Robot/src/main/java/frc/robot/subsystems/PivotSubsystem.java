@@ -17,6 +17,12 @@ public class PivotSubsystem extends SubsystemBase {
 
   /** Creates a new PivotSubsystem. */
   public PivotSubsystem() {
+    if (!PivotConstants.PIVOT_ENABLED) {
+        m_pivotMotor = null;
+        System.out.println("WARNING: Pivot Subsystem is DISABLED in Constants.java");
+        return;
+    }
+
     m_pivotMotor = new TalonSRX(PivotConstants.MOTOR_ID);
 
     // Configure sensor feedback device
@@ -60,6 +66,7 @@ public class PivotSubsystem extends SubsystemBase {
    * @param position Target position in encoder counts
    */
   public void setPosition(double position) {
+    if (!PivotConstants.PIVOT_ENABLED) return;
     m_pivotMotor.set(ControlMode.MotionMagic, position);
   }
 
@@ -80,28 +87,33 @@ public class PivotSubsystem extends SubsystemBase {
 
   /** Stops the pivot motor. */
   public void stop() {
+    if (!PivotConstants.PIVOT_ENABLED) return;
     m_pivotMotor.set(ControlMode.PercentOutput, 0);
   }
 
   /** Returns the current pivot position in encoder counts. */
   public double getPosition() {
+    if (!PivotConstants.PIVOT_ENABLED) return 0.0;
     return m_pivotMotor.getSelectedSensorPosition();
   }
 
   /** Returns true if the pivot is at the shooting high position. */
   public boolean isAtShootingHigh() {
+    if (!PivotConstants.PIVOT_ENABLED) return true; // Assume success
     return Math.abs(getPosition() - PivotConstants.SHOOTING_HIGH_POS)
         < PivotConstants.POSITION_TOLERANCE;
   }
 
   /** Returns true if the pivot is at the shooting low position. */
   public boolean isAtShootingLow() {
+    if (!PivotConstants.PIVOT_ENABLED) return true;
     return Math.abs(getPosition() - PivotConstants.SHOOTING_LOW_POS)
         < PivotConstants.POSITION_TOLERANCE;
   }
 
   /** Returns true if the pivot is at the intake position. */
   public boolean isAtIntake() {
+    if (!PivotConstants.PIVOT_ENABLED) return true;
     return Math.abs(getPosition() - PivotConstants.INTAKE_POS)
         < PivotConstants.POSITION_TOLERANCE;
   }
@@ -115,31 +127,37 @@ public class PivotSubsystem extends SubsystemBase {
 
   /** Returns a command to move the pivot to the shooting high position. */
   public Command moveToHighCommand() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return runOnce(() -> moveToHigh()).withName("Pivot to High");
   }
 
   /** Returns a command to move the pivot to the shooting low position. */
   public Command moveToLowCommand() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return runOnce(() -> moveToLow()).withName("Pivot to Low");
   }
 
   /** Returns a command to move the pivot to the intake position. */
   public Command moveToIntakeCommand() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return runOnce(() -> moveToIntake()).withName("Pivot to Intake");
   }
 
   /** Returns a command that waits until the pivot reaches the shooting high position. */
   public Command waitUntilAtHigh() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return run(() -> {}).until(() -> isAtShootingHigh()).withName("Wait Until at High");
   }
 
   /** Returns a command that waits until the pivot reaches the shooting low position. */
   public Command waitUntilAtLow() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return run(() -> {}).until(() -> isAtShootingLow()).withName("Wait Until at Low");
   }
 
   /** Returns a command that waits until the pivot reaches the intake position. */
   public Command waitUntilAtIntake() {
+    if (!PivotConstants.PIVOT_ENABLED) return runOnce(() -> {}).withName("Pivot Disabled");
     return run(() -> {}).until(() -> isAtIntake()).withName("Wait Until at Intake");
   }
 }

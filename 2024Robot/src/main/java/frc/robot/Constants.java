@@ -76,6 +76,11 @@ public final class Constants {
   }
 
   public static class PivotConstants {
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    public static final boolean PIVOT_ENABLED = true;
+
     // Motor CAN ID
     public static final int MOTOR_ID = 5;
 
@@ -142,6 +147,11 @@ public final class Constants {
   }
 
   public static class ShooterConstants {
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    public static final boolean SHOOTER_ENABLED = true;
+
     // Motor CAN IDs
     public static final int SHOOTER_MOTOR_ID = 8;
     public static final int FEEDER_MOTOR_ID = 7;

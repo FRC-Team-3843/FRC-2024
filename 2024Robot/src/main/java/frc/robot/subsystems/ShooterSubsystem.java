@@ -20,6 +20,13 @@ public class ShooterSubsystem extends SubsystemBase {
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
+    if (!ShooterConstants.SHOOTER_ENABLED) {
+        m_shooterMotor = null;
+        m_feederMotor = null;
+        System.out.println("WARNING: Shooter Subsystem is DISABLED in Constants.java");
+        return;
+    }
+
     m_shooterMotor = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ID);
     m_feederMotor = new TalonSRX(ShooterConstants.FEEDER_MOTOR_ID);
 
@@ -41,6 +48,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * @param speed Speed to spin (-1.0 to 1.0)
    */
   public void spinShooter(double speed) {
+    if (!ShooterConstants.SHOOTER_ENABLED) return;
     m_shooterMotor.set(speed);
   }
 
@@ -56,6 +64,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   /** Stops the shooter motor. */
   public void stopShooter() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return;
     m_shooterMotor.set(0);
   }
 
@@ -65,6 +74,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * @param speed Speed to run (-1.0 to 1.0)
    */
   public void runFeeder(double speed) {
+    if (!ShooterConstants.SHOOTER_ENABLED) return;
     m_feederMotor.set(ControlMode.PercentOutput, speed);
   }
 
@@ -80,6 +90,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   /** Stops the feeder motor. */
   public void stopFeeder() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return;
     m_feederMotor.set(ControlMode.PercentOutput, 0);
   }
 
@@ -98,36 +109,43 @@ public class ShooterSubsystem extends SubsystemBase {
 
   /** Returns a command to spin up the shooter. */
   public Command spinUpCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> spinUp()).withName("Spin Up Shooter");
   }
 
   /** Returns a command to spin the shooter in reverse. */
   public Command spinReverseCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> spinReverse()).withName("Spin Shooter Reverse");
   }
 
   /** Returns a command to stop the shooter. */
   public Command stopShooterCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> stopShooter()).withName("Stop Shooter");
   }
 
   /** Returns a command to run the feeder. */
   public Command feedCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> feed()).withName("Feed");
   }
 
   /** Returns a command to run the feeder in reverse. */
   public Command feedReverseCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> feedReverse()).withName("Feed Reverse");
   }
 
   /** Returns a command to stop the feeder. */
   public Command stopFeederCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> stopFeeder()).withName("Stop Feeder");
   }
 
   /** Returns a command to stop both shooter and feeder. */
   public Command stopCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> stopAll()).withName("Stop All");
   }
 }
