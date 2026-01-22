@@ -1,0 +1,133 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
+package frc.robot.subsystems;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterConstants;
+
+/** Shooter subsystem for controlling the shooter and feeder motors. */
+public class ShooterSubsystem extends SubsystemBase {
+  private final TalonFX m_shooterMotor;
+  private final TalonSRX m_feederMotor;
+
+  /** Creates a new ShooterSubsystem. */
+  public ShooterSubsystem() {
+    m_shooterMotor = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ID);
+    m_feederMotor = new TalonSRX(ShooterConstants.FEEDER_MOTOR_ID);
+
+    // Configure shooter motor (TalonFX/Phoenix6)
+    TalonFXConfiguration shooterConfig = new TalonFXConfiguration();
+    shooterConfig.MotorOutput.Inverted =
+        ShooterConstants.SHOOTER_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
+    m_shooterMotor.getConfigurator().apply(shooterConfig);
+
+    // Configure feeder motor (TalonSRX/Phoenix5)
+    m_feederMotor.setInverted(ShooterConstants.FEEDER_INVERTED);
+  }
+
+  /**
+   * Spins the shooter at the specified speed.
+   *
+   * @param speed Speed to spin (-1.0 to 1.0)
+   */
+  public void spinShooter(double speed) {
+    m_shooterMotor.set(speed);
+  }
+
+  /** Spins the shooter at full forward speed. */
+  public void spinUp() {
+    spinShooter(ShooterConstants.SHOOTER_SPEED);
+  }
+
+  /** Spins the shooter in reverse. */
+  public void spinReverse() {
+    spinShooter(ShooterConstants.SHOOTER_REVERSE_SPEED);
+  }
+
+  /** Stops the shooter motor. */
+  public void stopShooter() {
+    m_shooterMotor.set(0);
+  }
+
+  /**
+   * Runs the feeder at the specified speed.
+   *
+   * @param speed Speed to run (-1.0 to 1.0)
+   */
+  public void runFeeder(double speed) {
+    m_feederMotor.set(ControlMode.PercentOutput, speed);
+  }
+
+  /** Runs the feeder at full forward speed. */
+  public void feed() {
+    runFeeder(ShooterConstants.FEEDER_SPEED);
+  }
+
+  /** Runs the feeder in reverse. */
+  public void feedReverse() {
+    runFeeder(ShooterConstants.FEEDER_REVERSE_SPEED);
+  }
+
+  /** Stops the feeder motor. */
+  public void stopFeeder() {
+    m_feederMotor.set(ControlMode.PercentOutput, 0);
+  }
+
+  /** Stops both shooter and feeder motors. */
+  public void stopAll() {
+    stopShooter();
+    stopFeeder();
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+  }
+
+  // ==================== Command Factories ====================
+
+  /** Returns a command to spin up the shooter. */
+  public Command spinUpCommand() {
+    return runOnce(() -> spinUp()).withName("Spin Up Shooter");
+  }
+
+  /** Returns a command to spin the shooter in reverse. */
+  public Command spinReverseCommand() {
+    return runOnce(() -> spinReverse()).withName("Spin Shooter Reverse");
+  }
+
+  /** Returns a command to stop the shooter. */
+  public Command stopShooterCommand() {
+    return runOnce(() -> stopShooter()).withName("Stop Shooter");
+  }
+
+  /** Returns a command to run the feeder. */
+  public Command feedCommand() {
+    return runOnce(() -> feed()).withName("Feed");
+  }
+
+  /** Returns a command to run the feeder in reverse. */
+  public Command feedReverseCommand() {
+    return runOnce(() -> feedReverse()).withName("Feed Reverse");
+  }
+
+  /** Returns a command to stop the feeder. */
+  public Command stopFeederCommand() {
+    return runOnce(() -> stopFeeder()).withName("Stop Feeder");
+  }
+
+  /** Returns a command to stop both shooter and feeder. */
+  public Command stopCommand() {
+    return runOnce(() -> stopAll()).withName("Stop All");
+  }
+}
