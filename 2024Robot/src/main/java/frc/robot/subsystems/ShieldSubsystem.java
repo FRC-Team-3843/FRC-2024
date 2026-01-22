@@ -13,10 +13,17 @@ import frc.robot.Constants.ShieldConstants;
 
 /** Shield subsystem for controlling the intake shield mechanism. */
 public class ShieldSubsystem extends SubsystemBase {
+  // If SHIELD_ENABLED is false, this remains null to save resources.
   private final TalonSRX m_shieldMotor;
 
   /** Creates a new ShieldSubsystem. */
   public ShieldSubsystem() {
+    if (!ShieldConstants.SHIELD_ENABLED) {
+      m_shieldMotor = null;
+      System.out.println("WARNING: Shield Subsystem is DISABLED in Constants.java");
+      return;
+    }
+
     m_shieldMotor = new TalonSRX(ShieldConstants.MOTOR_ID);
 
     // Factory default first
@@ -57,6 +64,7 @@ public class ShieldSubsystem extends SubsystemBase {
    * @param position Target position
    */
   public void setPosition(double position) {
+    if (!ShieldConstants.SHIELD_ENABLED) return;
     m_shieldMotor.set(ControlMode.Position, position);
   }
 
@@ -77,21 +85,25 @@ public class ShieldSubsystem extends SubsystemBase {
 
   /** Returns the current shield position. */
   public double getPosition() {
+    if (!ShieldConstants.SHIELD_ENABLED) return 0.0;
     return m_shieldMotor.getSelectedSensorPosition();
   }
 
   /** Returns true if the shield is at the down position. */
   public boolean isAtDown() {
+    if (!ShieldConstants.SHIELD_ENABLED) return true; // Assume success to not block auto
     return Math.abs(getPosition() - ShieldConstants.DOWN_POS) < 1.0;
   }
 
   /** Returns true if the shield is at the mid position. */
   public boolean isAtMid() {
+    if (!ShieldConstants.SHIELD_ENABLED) return true;
     return Math.abs(getPosition() - ShieldConstants.MID_POS) < 1.0;
   }
 
   /** Returns true if the shield is at the up position. */
   public boolean isAtUp() {
+    if (!ShieldConstants.SHIELD_ENABLED) return true;
     return Math.abs(getPosition() - ShieldConstants.UP_POS) < 1.0;
   }
 
@@ -101,34 +113,42 @@ public class ShieldSubsystem extends SubsystemBase {
   }
 
   // ==================== Command Factories ====================
+  // If disabled, these return "InstantCommand" that does nothing (runOnce -> {}).
+  // This effectively removes them from any parallel groups they are in.
 
   /** Returns a command to move the shield to the down position. */
   public Command moveDownCommand() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return runOnce(() -> moveDown()).withName("Shield Down");
   }
 
   /** Returns a command to move the shield to the mid position. */
   public Command moveMidCommand() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return runOnce(() -> moveMid()).withName("Shield Mid");
   }
 
   /** Returns a command to move the shield to the up position. */
   public Command moveUpCommand() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return runOnce(() -> moveUp()).withName("Shield Up");
   }
 
   /** Returns a command that waits until the shield reaches the down position. */
   public Command waitUntilAtDown() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return run(() -> {}).until(() -> isAtDown()).withName("Wait Until Shield Down");
   }
 
   /** Returns a command that waits until the shield reaches the mid position. */
   public Command waitUntilAtMid() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return run(() -> {}).until(() -> isAtMid()).withName("Wait Until Shield Mid");
   }
 
   /** Returns a command that waits until the shield reaches the up position. */
   public Command waitUntilAtUp() {
+    if (!ShieldConstants.SHIELD_ENABLED) return runOnce(() -> {}).withName("Shield Disabled");
     return run(() -> {}).until(() -> isAtUp()).withName("Wait Until Shield Up");
   }
 }

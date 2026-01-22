@@ -108,6 +108,13 @@ public final class Constants {
   }
 
   public static class ShieldConstants {
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
+    // Set to TRUE if the shield motor is installed.
+    // Set to FALSE to disable all shield code (saves CAN/CPU usage).
+    public static final boolean SHIELD_ENABLED = false;
+
     // Motor CAN ID
     public static final int MOTOR_ID = 6;
 
