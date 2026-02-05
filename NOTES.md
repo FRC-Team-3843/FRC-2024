@@ -1,5 +1,23 @@
 # Working Notes - FRC-2024
 
+> **Documentation Guide:**
+> - **This file (NOTES):** Setup, tuning, troubleshooting, TODOs
+> - **README.md:** Project overview and quick start
+> - **STANDARDS.md:** Coding standards (references FRC-2026\STANDARDS.md)
+
+## CAN Bus Assignments
+
+| Device | CAN ID | Description |
+|--------|--------|-------------|
+| Front Left Drive | 1 | Mecanum wheel motor |
+| Rear Left Drive | 2 | Mecanum wheel motor |
+| Front Right Drive | 3 | Mecanum wheel motor |
+| Rear Right Drive | 4 | Mecanum wheel motor |
+| Pivot Motor | 5 | Shooter angle adjustment |
+| Shield Motor | 6 | Defensive shield (optional) |
+| Feeder Motor | 7 | Note feeding system |
+| Shooter Motor | 8 | Main shooter flywheel |
+
 ## Pre-Flight Checklist
 - [ ] Verify hardware configuration in Constants.java matches current robot
 - [ ] Check CAN IDs match physical wiring

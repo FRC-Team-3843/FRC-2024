@@ -1,0 +1,103 @@
+{
+  "$schema": "robot-config.schema.json",
+  "operator": {
+    "driverControllerPort": 0,
+    "operatorControllerPort": 1,
+    "deadband": 0.12,
+    "deadbandY": 0.24
+  },
+  "drive": {
+    "drivetrainType": "TALON_SRX_CIM",
+    "hasDriveEncoders": false,
+    "frontLeft": { "id": 1, "inverted": true },
+    "rearLeft": { "id": 2, "inverted": true },
+    "frontRight": { "id": 3, "inverted": false },
+    "rearRight": { "id": 4, "inverted": false },
+    "rampRate": 0.2,
+    "maxWheelVelocity": 5000,
+    "pid": {
+      "slot": 0,
+      "p": 0.0001,
+      "i": 0.000001,
+      "iZone": 0,
+      "d": 0,
+      "ff": 0.000156,
+      "maxOutput": 1,
+      "minOutput": -1
+    },
+    "smartMotion": {
+      "maxVelocity": 5000,
+      "maxAcceleration": 8000,
+      "minVelocity": 0,
+      "allowedError": 0
+    },
+    "positionTolerance": 0.5
+  },
+  "pivot": {
+    "enabled": true,
+    "motorId": 5,
+    "setpoints": {
+      "shootingHigh": 8000,
+      "shootingLow": 73000,
+      "intake": 160000
+    },
+    "positionTolerance": 5000,
+    "inverted": false,
+    "sensorPhase": true,
+    "peakOutputForward": 1.0,
+    "peakOutputReverse": -1.0,
+    "pid": {
+      "slot": 0,
+      "timeoutMs": 30,
+      "f": 0.02325,
+      "p": 2.0,
+      "i": 0.0008,
+      "d": 2.0
+    },
+    "motionMagic": {
+      "cruiseVelocity": 100000,
+      "acceleration": 60000,
+      "sCurveStrength": 0
+    }
+  },
+  "shield": {
+    "enabled": false,
+    "motorId": 6,
+    "setpoints": {
+      "down": 0,
+      "mid": 30,
+      "up": 60
+    },
+    "inverted": false,
+    "sensorPhase": false,
+    "peakOutputForward": 0.6,
+    "peakOutputReverse": -0.6,
+    "pid": {
+      "slot": 0,
+      "timeoutMs": 30,
+      "f": 0,
+      "p": 80,
+      "i": 0,
+      "d": 0
+    },
+    "initialPosition": 30
+  },
+  "shooter": {
+    "enabled": true,
+    "shooterMotorId": 8,
+    "feederMotorId": 7,
+    "shooterInverted": true,
+    "feederInverted": false,
+    "shooterSpeed": 1.0,
+    "shooterReverseSpeed": -0.8,
+    "feederSpeed": 1.0,
+    "feederReverseSpeed": -0.6
+  },
+  "auto": {
+    "timing": {
+      "shooterSpinupTime": 1.0,
+      "feedTime": 0.5,
+      "waitTime": 10.0
+    }
+  }
+}

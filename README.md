@@ -2,6 +2,11 @@
 
 FRC Team 3843 - 2024 Season
 
+> **Documentation Guide:**
+> - **This file (README):** Project overview and quick start
+> - **NOTES.md:** Setup procedures, tuning values, troubleshooting
+> - **STANDARDS.md:** Coding standards and architecture rules (references FRC-2026)
+
 ## Overview
 Team 3843's robot for the 2024 Crescendo game. This robot features a mecanum drive system with flexible hardware support, allowing the same codebase to run on both competition and practice robots. Key capabilities include note shooting, pivoting mechanism for angle adjustment, and autonomous routines.
 
@@ -25,18 +30,7 @@ Team 3843's robot for the 2024 Crescendo game. This robot features a mecanum dri
 - REVLib (SparkMax/NEO)
 - Phoenix5 (TalonSRX/CIM)
 
-## CAN ID Assignments
-
-| Device | CAN ID | Description |
-|--------|--------|-------------|
-| Front Left Drive | 1 | Mecanum wheel motor |
-| Rear Left Drive | 2 | Mecanum wheel motor |
-| Front Right Drive | 3 | Mecanum wheel motor |
-| Rear Right Drive | 4 | Mecanum wheel motor |
-| Pivot Motor | 5 | Shooter angle adjustment |
-| Shield Motor | 6 | Defensive shield (optional) |
-| Feeder Motor | 7 | Note feeding system |
-| Shooter Motor | 8 | Main shooter flywheel |
+*See NOTES.md for CAN bus assignments*
 
 ## Subsystems
 - **Drive:** Mecanum drive with field-centric control and hardware abstraction layer

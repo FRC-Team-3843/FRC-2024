@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Robot Configuration",
+  "description": "Configuration schema for FRC 2024 Robot",
+  "type": "object",
+  "properties": {
+    "operator": {
+      "type": "object",
+      "properties": {
+        "driverControllerPort": { "type": "integer", "description": "Port for driver controller" },
+        "operatorControllerPort": { "type": "integer", "description": "Port for operator controller" },
+        "deadband": { "type": "number", "minimum": 0, "maximum": 1, "description": "Joystick deadband" },
+        "deadbandY": { "type": "number", "minimum": 0, "maximum": 1, "description": "Y-axis joystick deadband" }
+      },
+      "required": ["driverControllerPort", "operatorControllerPort", "deadband", "deadbandY"]
+    },
+    "drive": {
+      "type": "object",
+      "properties": {
+        "drivetrainType": { "type": "string", "enum": ["SPARK_MAX_NEO", "TALON_SRX_CIM"] },
+        "hasDriveEncoders": { "type": "boolean" },
+        "frontLeft": { "$ref": "#/definitions/motorConfig" },
+        "rearLeft": { "$ref": "#/definitions/motorConfig" },
+        "frontRight": { "$ref": "#/definitions/motorConfig" },
+        "rearRight": { "$ref": "#/definitions/motorConfig" },
+        "rampRate": { "type": "number" },
+        "maxWheelVelocity": { "type": "number" },
+        "pid": { "$ref": "#/definitions/pidConfig" },
+        "smartMotion": {
+          "type": "object",
+          "properties": {
+            "maxVelocity": { "type": "number" },
+            "maxAcceleration": { "type": "number" },
+            "minVelocity": { "type": "number" },
+            "allowedError": { "type": "number" }
+          },
+          "required": ["maxVelocity", "maxAcceleration", "minVelocity", "allowedError"]
+        },
+        "positionTolerance": { "type": "number" }
+      },
+      "required": ["drivetrainType", "hasDriveEncoders", "frontLeft", "rearLeft", "frontRight", "rearRight", "pid"]
+    },
+    "pivot": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "motorId": { "type": "integer" },
+        "setpoints": {
+          "type": "object",
+          "properties": {
+            "shootingHigh": { "type": "integer" },
+            "shootingLow": { "type": "integer" },
+            "intake": { "type": "integer" }
+          },
+          "required": ["shootingHigh", "shootingLow", "intake"]
+        },
+        "positionTolerance": { "type": "integer" },
+        "inverted": { "type": "boolean" },
+        "sensorPhase": { "type": "boolean" },
+        "peakOutputForward": { "type": "number" },
+        "peakOutputReverse": { "type": "number" },
+        "pid": { "$ref": "#/definitions/pidConfig" },
+        "motionMagic": {
+          "type": "object",
+          "properties": {
+            "cruiseVelocity": { "type": "integer" },
+            "acceleration": { "type": "integer" },
+            "sCurveStrength": { "type": "integer" }
+          },
+          "required": ["cruiseVelocity", "acceleration", "sCurveStrength"]
+        }
+      },
+      "required": ["enabled", "motorId", "setpoints", "pid"]
+    },
+    "shield": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "motorId": { "type": "integer" },
+        "setpoints": {
+          "type": "object",
+          "properties": {
+            "down": { "type": "number" },
+            "mid": { "type": "number" },
+            "up": { "type": "number" }
+          },
+          "required": ["down", "mid", "up"]
+        },
+        "inverted": { "type": "boolean" },
+        "sensorPhase": { "type": "boolean" },
+        "peakOutputForward": { "type": "number" },
+        "peakOutputReverse": { "type": "number" },
+        "pid": { "$ref": "#/definitions/pidConfig" },
+        "initialPosition": { "type": "number" }
+      },
+      "required": ["enabled", "motorId", "setpoints", "pid"]
+    },
+    "shooter": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "shooterMotorId": { "type": "integer" },
+        "feederMotorId": { "type": "integer" },
+        "shooterInverted": { "type": "boolean" },
+        "feederInverted": { "type": "boolean" },
+        "shooterSpeed": { "type": "number" },
+        "shooterReverseSpeed": { "type": "number" },
+        "feederSpeed": { "type": "number" },
+        "feederReverseSpeed": { "type": "number" }
+      },
+      "required": ["enabled", "shooterMotorId", "feederMotorId", "shooterSpeed", "feederSpeed"]
+    },
+    "auto": {
+      "type": "object",
+      "properties": {
+        "timing": {
+          "type": "object",
+          "properties": {
+            "shooterSpinupTime": { "type": "number" },
+            "feedTime": { "type": "number" },
+            "waitTime": { "type": "number" }
+          },
+          "required": ["shooterSpinupTime", "feedTime", "waitTime"]
+        }
+      },
+      "required": ["timing"]
+    }
+  },
+  "definitions": {
+    "motorConfig": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "inverted": { "type": "boolean" }
+      },
+      "required": ["id", "inverted"]
+    },
+    "pidConfig": {
+      "type": "object",
+      "properties": {
+        "slot": { "type": "integer" },
+        "p": { "type": "number" },
+        "i": { "type": "number" },
+        "d": { "type": "number" },
+        "f": { "type": "number" },
+        "iZone": { "type": "number" },
+        "maxOutput": { "type": "number" },
+        "minOutput": { "type": "number" },
+        "timeoutMs": { "type": "integer" }
+      },
+      "required": ["slot", "p", "i", "d", "f"]
+    }
+  }
+}

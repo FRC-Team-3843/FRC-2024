@@ -1,23 +1,30 @@
 # FRC-2024 Technical Standards
 
-**Standards Version:** Updated to 2026 standards (APIs and architecture refactored)
-
-**⚠️ IMPORTANT:** APIs change season to season. Always verify compatibility before copying to newer projects.
+> **This repository follows FRC-2026 standards.**
+> See `C:\GitHub\FRC-2026\STANDARDS.md` for the complete technical reference.
+>
+> **Documentation Guide:**
+> - **This file (STANDARDS):** Repository-specific context and status
+> - **README.md:** Project overview and quick start
+> - **NOTES.md:** Setup procedures, tuning values, troubleshooting
+> - **FRC-2026\STANDARDS.md:** Complete coding standards and API reference
 
 ---
 
-## Branch Guide
+## Repository-Specific Context
+
+### Branch Guide
 
 This repository has **two branches** with very different states:
 
-### `main` Branch (CURRENT STANDARDS)
+#### `main` Branch (CURRENT STANDARDS)
 - **Status:** Fully refactored to modern standards
-- **Architecture:** Command-based framework
+- **Architecture:** Command-based framework with IO-layer abstraction
 - **Motor APIs:** `SparkMax` with `SparkMaxConfig`, `TalonFX` with Phoenix6
-- **Patterns:** IO-layer abstraction, dependency injection, command factories
+- **Patterns:** Dependency injection, command factories
 - **Use For:** Reference implementations of modern WPILib patterns
 
-### `2024_Archive` Branch (DEPRECATED)
+#### `2024_Archive` Branch (DEPRECATED)
 - **Status:** Original 2024 competition code (deprecated)
 - **Architecture:** Monolithic TimedRobot (no command-based framework)
 - **Motor APIs:** Old `CANSparkMax` API (removed in 2026)
@@ -28,11 +35,11 @@ This repository has **two branches** with very different states:
 
 ---
 
-## Current Standards (main branch)
+## Current State (main branch)
 
-### Architecture
+### Architecture Overview
 
-The refactored `main` branch uses modern WPILib command-based architecture:
+The refactored `main` branch uses modern WPILib command-based architecture with IO-layer abstraction:
 
 **Entry Points:**
 - `Main.java` - WPILib entry point
@@ -56,75 +63,6 @@ The refactored `main` branch uses modern WPILib command-based architecture:
 - Autonomous commands built using PathPlanner and command compositions
 - `CommandXboxController` for driver input with trigger API
 
-**Configuration:**
-- `Constants.java` - All configuration centralized
-- CAN IDs, sensor configs, PID constants, positions defined here
-
-### Motor Control APIs
-
-**SparkMax (NEO motors):**
-```java
-SparkMax motor = new SparkMax(canId, MotorType.kBrushless);
-SparkMaxConfig config = new SparkMaxConfig();
-config.inverted(true)
-      .idleMode(IdleMode.kBrake)
-      .smartCurrentLimit(40);
-motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-```
-
-**TalonFX (Kraken/Falcon motors - if used):**
-```java
-TalonFX motor = new TalonFX(canId);
-TalonFXConfiguration config = new TalonFXConfiguration();
-config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-motor.getConfigurator().apply(config);
-```
-
-### Controller Input
-
-Uses `CommandXboxController` with trigger API:
-```java
-CommandXboxController driver = new CommandXboxController(0);
-driver.a().onTrue(subsystem.someCommand());
-driver.leftTrigger().whileTrue(subsystem.anotherCommand());
-```
-
----
-
-## Copying to Newer Projects
-
-**CRITICAL:** APIs change season to season. Before copying ANY code to a newer project:
-
-1. **Verify API compatibility** - Check that all APIs still exist and work the same way
-2. **Check deprecation warnings** - WPILib frequently deprecates old patterns
-3. **Review architecture patterns** - Ensure the pattern is still recommended
-4. **Test thoroughly** - Don't assume code that worked in 2024 will work unchanged
-
-**What's Safe to Reference:**
-- High-level architecture patterns (subsystems, commands, IO-layer)
-- Game-specific strategy and autonomous routines (adapt to new APIs)
-- Mecanum drive kinematics and control logic (verify APIs)
-
-**What Requires Verification:**
-- ALL motor control code (APIs change frequently)
-- Controller binding patterns (verify trigger API is still current)
-- Vendor library usage (REVLib, Phoenix6, etc.)
-
----
-
-## Build Commands
-
-From `FRC-2024/2024Robot/`:
-```bash
-./gradlew build          # Build the project
-./gradlew deploy         # Deploy to robot
-./gradlew test           # Run unit tests
-./gradlew simulateJava   # Run robot simulation
-```
-
-**Team Number:** 3843
-
 ---
 
 ## 2024 Season Context
@@ -144,20 +82,38 @@ From `FRC-2024/2024Robot/`:
 - Mecanum wheels for omnidirectional movement
 - Field-centric and robot-centric drive modes
 
-**Why This Matters:**
-- Understanding the 2024 game helps contextualize code decisions
-- Mecanum kinematics are game-agnostic and can be referenced
-- Game-specific mechanisms show how to structure multi-subsystem robots
+---
+
+## What to Reference from This Repo
+
+### ✅ Safe to Reference:
+
+- **IO-Layer Pattern:** Hardware abstraction interfaces for subsystems
+- **Mecanum Kinematics:** Drive control logic for omnidirectional movement
+- **Command Factories:** Examples of inline command factory methods
+- **Architecture Structure:** Clean separation of Robot/RobotContainer/Subsystems
+
+### ⚠️ Use with Caution:
+
+- **Game-Specific Logic:** Adapt to new game requirements
+- **Motor Configurations:** Verify APIs are still current
 
 ---
 
-## Repository Status
+## Build Commands
 
-**Last Updated:** 2026-01-23
+From `FRC-2024/2024Robot/`:
+```bash
+./gradlew build          # Build the project
+./gradlew deploy         # Deploy to robot
+./gradlew test           # Run unit tests
+./gradlew simulateJava   # Run robot simulation
+```
+
+**Team Number:** 3843
+
+---
+
+**Last Updated:** 2026-01-26
 **Status:** REFERENCE - Modern standards applied to 2024 robot
 **Use For:** Learning modern WPILib patterns, understanding mecanum drive, seeing IO-layer abstraction in practice
-**Maintained:** `main` branch kept up-to-date with current standards; `2024_Archive` branch frozen
-
----
-
-**For the latest standards:** See the newest season's `STANDARDS.md` file (currently `FRC-2026\STANDARDS.md`)
