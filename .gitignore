@@ -186,3 +186,7 @@ compile_commands.json
 # Eclipse generated file for annotation processors
 .factorypath
 .agent-log/
+
+# Agent working directories
+.scratch/
+.research/
