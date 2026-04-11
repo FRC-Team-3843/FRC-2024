@@ -2,11 +2,14 @@
 
 This project is part of the **FRC-2024** repository.
 
-## Configuration Sources
+Read the repo-local files first:
 
-1. **Root coordination protocol:** Read `C:\GitHub\PROTOCOL.md`
-2. **Repo protocol:** Read `FRC-2024\PROTOCOL.md`
-3. **Technical standards:** Read `FRC-2024\STANDARDS.md`
-4. **Project context:** Read `FRC-2024\.agent-context.md`
-5. **Activity log:** Check `FRC-2024\.agent-log\changelog.md`
-6. **Handoffs:** Check `FRC-2024\.agent-log\handoffs.md`
+1. `..\.protocol.md`
+2. `..\.standards.md`
+3. `..\.project-context.md`
+4. `..\.changelog.md`
+
+The repo is intended to work on its own without requiring `C:\GitHub` to exist.
+
+- **Changelog tag:** `GEMINI`
+- **Other agents:** Claude (..\\CLAUDE.md), Codex (..\\AGENTS.md)
