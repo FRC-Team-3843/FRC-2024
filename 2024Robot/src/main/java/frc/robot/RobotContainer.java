@@ -93,10 +93,15 @@ public class RobotContainer {
                 .b()
                 .and(m_operatorController.rightBumper().negate()))
         .whileTrue(
-            Commands.parallel(
-                m_shooterSubsystem.spinUpCommand(),
-                m_pivotSubsystem.moveToHighCommand(),
-                m_shieldSubsystem.moveMidCommand()));
+            Commands.run(
+                () -> {
+                  m_shooterSubsystem.spinUp();
+                  m_pivotSubsystem.moveToHigh();
+                  m_shieldSubsystem.moveMid();
+                },
+                m_shooterSubsystem,
+                m_pivotSubsystem,
+                m_shieldSubsystem));
 
     // B + RB - High shot fire
     // (pivot high, shooter spin, feeder on, shield mid)
@@ -108,11 +113,16 @@ public class RobotContainer {
                 .b()
                 .and(m_operatorController.rightBumper()))
         .whileTrue(
-            Commands.parallel(
-                m_shooterSubsystem.spinUpCommand(),
-                m_shooterSubsystem.feedCommand(),
-                m_pivotSubsystem.moveToHighCommand(),
-                m_shieldSubsystem.moveMidCommand()));
+            Commands.run(
+                () -> {
+                  m_shooterSubsystem.spinUp();
+                  m_shooterSubsystem.feed();
+                  m_pivotSubsystem.moveToHigh();
+                  m_shieldSubsystem.moveMid();
+                },
+                m_shooterSubsystem,
+                m_pivotSubsystem,
+                m_shieldSubsystem));
 
     // X button (without RB) - Low shot prep
     // (pivot low, shield up)
@@ -137,11 +147,16 @@ public class RobotContainer {
                 .x()
                 .and(m_operatorController.rightBumper()))
         .whileTrue(
-            Commands.parallel(
-                m_shooterSubsystem.spinUpCommand(),
-                m_shooterSubsystem.feedCommand(),
-                m_pivotSubsystem.moveToLowCommand(),
-                m_shieldSubsystem.moveUpCommand()));
+            Commands.run(
+                () -> {
+                  m_shooterSubsystem.spinUp();
+                  m_shooterSubsystem.feed();
+                  m_pivotSubsystem.moveToLow();
+                  m_shieldSubsystem.moveUp();
+                },
+                m_shooterSubsystem,
+                m_pivotSubsystem,
+                m_shieldSubsystem));
 
     // Start button - Toggle velocity mode
     m_driverController.start().onTrue(m_driveSubsystem.toggleVelocityModeCommand());
@@ -159,7 +174,7 @@ public class RobotContainer {
     m_driveSubsystem.setDefaultCommand(
         m_driveSubsystem.driveCommand(
             () -> -m_driverController.getLeftY(),
-            () -> -m_driverController.getLeftX(),
+            () -> m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
 
     // Default stowed command - pivot high, shield mid when below low position
@@ -256,8 +271,7 @@ public class RobotContainer {
                         < Constants.PivotConstants.POSITION_TOLERANCE),
             // Drive back while intaking
             Commands.parallel(
-                m_shooterSubsystem.spinReverseCommand(),
-                m_shooterSubsystem.feedReverseCommand(),
+                m_shooterSubsystem.reverseAllCommand(),
                 m_driveSubsystem.driveToPositionCommand(-25, -25)),
             // Return and shoot
             m_shooterSubsystem.stopCommand(),
@@ -300,8 +314,7 @@ public class RobotContainer {
                         < Constants.PivotConstants.POSITION_TOLERANCE),
             // Drive back
             Commands.parallel(
-                m_shooterSubsystem.spinReverseCommand(),
-                m_shooterSubsystem.feedReverseCommand(),
+                m_shooterSubsystem.reverseAllCommand(),
                 m_driveSubsystem.driveToPositionCommand(-15, -15)),
             // Turn right
             m_driveSubsystem.driveToPositionCommand(-45, -15),
@@ -355,8 +368,7 @@ public class RobotContainer {
                         < Constants.PivotConstants.POSITION_TOLERANCE),
             // Drive back
             Commands.parallel(
-                m_shooterSubsystem.spinReverseCommand(),
-                m_shooterSubsystem.feedReverseCommand(),
+                m_shooterSubsystem.reverseAllCommand(),
                 m_driveSubsystem.driveToPositionCommand(-15, -15)),
             // Turn left
             m_driveSubsystem.driveToPositionCommand(-15, -45),

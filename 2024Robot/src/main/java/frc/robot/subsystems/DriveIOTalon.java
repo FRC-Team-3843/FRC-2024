@@ -19,7 +19,7 @@ public class DriveIOTalon implements DriveIO {
     m_frontRight = new WPI_TalonSRX(DriveConstants.FRONT_RIGHT_MOTOR_ID);
     m_rearRight = new WPI_TalonSRX(DriveConstants.REAR_RIGHT_MOTOR_ID);
 
-    configureMotor(m_frontLeft, DriveConstants.FRONT_RIGHT_INVERTED);
+    configureMotor(m_frontLeft, DriveConstants.FRONT_LEFT_INVERTED);
     configureMotor(m_rearLeft, DriveConstants.REAR_LEFT_INVERTED);
     configureMotor(m_frontRight, DriveConstants.FRONT_RIGHT_INVERTED);
     configureMotor(m_rearRight, DriveConstants.REAR_RIGHT_INVERTED);

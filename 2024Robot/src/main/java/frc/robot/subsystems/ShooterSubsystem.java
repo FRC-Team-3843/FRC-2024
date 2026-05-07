@@ -142,10 +142,26 @@ public class ShooterSubsystem extends SubsystemBase {
     return runOnce(() -> feed()).withName("Feed");
   }
 
+  /**
+   * Returns a continuous command that spins up the shooter and runs the feeder, re-asserting both
+   * each tick. Use with whileTrue so the pivot default command (which calls stopAll()) cannot stomp
+   * on the shooter mid-shot.
+   */
+  public Command spinUpAndFeedCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
+    return run(() -> { spinUp(); feed(); }).withName("Spin Up + Feed");
+  }
+
   /** Returns a command to run the feeder in reverse. */
   public Command feedReverseCommand() {
     if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
     return runOnce(() -> feedReverse()).withName("Feed Reverse");
+  }
+
+  /** Returns a command to reverse the shooter and feeder in a single shooter-required action. */
+  public Command reverseAllCommand() {
+    if (!ShooterConstants.SHOOTER_ENABLED) return runOnce(() -> {}).withName("Shooter Disabled");
+    return runOnce(() -> { spinReverse(); feedReverse(); }).withName("Reverse All");
   }
 
   /** Returns a command to stop the feeder. */
